@@ -1,0 +1,5 @@
+server:
+  port: 8090
+  maxHeaderBytes: 1
+  readTimeout: 10s
+  writeTimeout: 10s
