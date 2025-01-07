@@ -36,7 +36,7 @@ func (s ProductService) GenerateNames(payload *structure.GenerateNamesPayloadInp
 		jobs         = make(chan [][]structure.ProductChar)
 		workersCount = 5
 	)
-	
+
 	for i := 0; i < workersCount; i++ {
 		go func() {
 			for products := range jobs {
@@ -78,7 +78,8 @@ func (s ProductService) GenerateNames(payload *structure.GenerateNamesPayloadInp
 		}()
 	}
 
-	for i := 0; i < int(math.Ceil(float64(total)/float64(limit))); i++ {
+	iterations := int(math.Ceil(float64(total) / float64(limit)))
+	for i := 0; i < iterations; i++ {
 		wg.Add(1)
 		go func() {
 			ids := s.deps.ProductRepository.GetIds(payload, limit, i*limit)
