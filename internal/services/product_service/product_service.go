@@ -48,24 +48,15 @@ func (s ProductService) GenerateNames(payload *structure.GenerateNamesPayloadInp
 				for _, productChars := range products {
 					var productNameChars []string
 					for _, char := range productChars {
-						var charName string
-						if char.UseEmoji {
-							str := gomoji.FindAll(char.Name)
-
-							if len(str) > 0 {
-								charName = str[0].Character
-							}
-							charName = char.Name
-						} else {
-							charName = gomoji.RemoveEmojis(char.Name)
-						}
-						productNameChars = append(productNameChars, charName)
+						productNameChars = append(
+							productNameChars,
+							s.prepareChar(char.Name, char.UseEmoji),
+						)
 					}
 
-					productName := strings.Join(productNameChars, " ")
 					insert = append(insert, product{
 						Id:        productChars[0].IdProduct,
-						Name:      productName,
+						Name:      strings.Join(productNameChars, " "),
 						UpdatedAt: time.Now().Format("2006-01-02 15:04:05"),
 					})
 				}
@@ -105,4 +96,16 @@ func (s ProductService) GenerateNames(payload *structure.GenerateNamesPayloadInp
 		wg.Wait()
 		close(jobs)
 	}()
+}
+
+func (s ProductService) prepareChar(char string, useEmoji bool) string {
+	if useEmoji {
+		str := gomoji.FindAll(char)
+		if len(str) > 0 {
+			return str[0].Character
+		}
+		return char
+	}
+
+	return gomoji.RemoveEmojis(char)
 }
