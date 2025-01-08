@@ -1,7 +1,6 @@
 package product_service
 
 import (
-	"fmt"
 	"github.com/lovelydeng/gomoji"
 	"math"
 	"slices"
@@ -26,8 +25,6 @@ func NewProductService(deps *Deps) *ProductService {
 }
 
 func (s ProductService) GenerateNames(payload *structure.GenerateNamesPayloadInput) {
-
-	start := time.Now()
 
 	var (
 		total        = s.deps.ProductRepository.CountTotal(payload)
@@ -105,9 +102,7 @@ func (s ProductService) GenerateNames(payload *structure.GenerateNamesPayloadInp
 	}
 
 	go func() {
-		wg.Wait()   // Ждем завершения всех горутин
-		close(jobs) // Закрываем канал
+		wg.Wait()
+		close(jobs)
 	}()
-
-	fmt.Println(time.Since(start))
 }
