@@ -31,20 +31,16 @@ func (lm *LifecycleManager) Run() {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	select {
-	case <-shutdown:
-
-		fmt.Println("Shutting down...")
-		for _, instance := range lm.instances {
-			instance.append.OnStop(ctx)
-		}
-
-		fmt.Println("Cancel ctx...")
-		cancel()
-		close(shutdown)
-		//default:
-		//	close(lm.shutdown)
+	<-shutdown //ждем завершения канала
+	
+	fmt.Println("Shutting down...")
+	for _, instance := range lm.instances {
+		instance.append.OnStop(ctx)
 	}
+
+	fmt.Println("Cancel ctx...")
+	cancel()
+	close(shutdown)
 
 	// Ждём завершения горутин
 	done := make(chan struct{})
@@ -56,7 +52,7 @@ func (lm *LifecycleManager) Run() {
 	select {
 	case <-done:
 		fmt.Println("All goroutines finished gracefully")
-	case <-time.After(10 * time.Second):
+	case <-time.After(20 * time.Second):
 		fmt.Println("Forcing shutdown...")
 	}
 }

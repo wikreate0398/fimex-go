@@ -1,13 +1,19 @@
 package interfaces
 
-import "wikreate/fimex/internal/domain/structure"
+import (
+	"wikreate/fimex/internal/domain/entities/catalog/product_entities"
+	"wikreate/fimex/internal/domain/structure/inputs"
+)
 
 type ProductRepository interface {
-	GetIds(payload *structure.GenerateNamesPayloadInput, limit int, offset int) []string
+	GetIdsForGenerateNames(payload *inputs.GenerateNamesPayloadInput, limit int, offset int) []string
+	CountTotalForGenerateNames(payload *inputs.GenerateNamesPayloadInput) int
+	CountTotal() int
+	GetForSort(limit int, offset int) []product_entities.ProductSortDto
 	UpdateNames(arg interface{}, key string)
-	CountTotal(payload *structure.GenerateNamesPayloadInput) int
+	UpdatePosition(arg interface{}, key string)
 }
 
 type ProductCharRepository interface {
-	GetByProductIds(ids []string) []structure.ProductChar
+	GetByProductIds(ids []string) []product_entities.ProductCharDto
 }

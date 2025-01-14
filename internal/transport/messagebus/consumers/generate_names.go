@@ -2,17 +2,21 @@ package consumers
 
 import (
 	"encoding/json"
-	"wikreate/fimex/internal/domain/structure"
-	"wikreate/fimex/internal/services/product_service"
+	"wikreate/fimex/internal/domain/interfaces"
+	"wikreate/fimex/internal/domain/services/catalog/product_service"
+	"wikreate/fimex/internal/domain/structure/inputs"
 )
 
 type GenerateNamesConsumer struct {
 	service *product_service.ProductService
-	input   *structure.GenerateNamesPayloadInput
+	input   *inputs.GenerateNamesPayloadInput
+	log     interfaces.Logger
 }
 
-func NewGenerateNamesConsumer(service *product_service.ProductService) Consumer {
-	return &GenerateNamesConsumer{service, nil}
+func NewGenerateProductsNamesConsumer(
+	service *product_service.ProductService, log interfaces.Logger,
+) *GenerateNamesConsumer {
+	return &GenerateNamesConsumer{service, nil, log}
 }
 
 func (r *GenerateNamesConsumer) Handle() {
@@ -20,5 +24,6 @@ func (r *GenerateNamesConsumer) Handle() {
 }
 
 func (r *GenerateNamesConsumer) ToStruct(result []byte) {
-	json.Unmarshal(result, &r.input)
+	err := json.Unmarshal(result, &r.input)
+	r.log.PanicOnFailed(err, "Unmarshal failed")
 }

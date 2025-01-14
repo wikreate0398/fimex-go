@@ -17,7 +17,7 @@ func NewBatchUpdate(table, identifier string, arg interface{}) *BatchUpdate {
 	return &BatchUpdate{table, identifier, arg}
 }
 
-func (b *BatchUpdate) getQuery() (string, error) {
+func (b *BatchUpdate) query() (string, error) {
 	type value struct {
 		fieldTag   string
 		fieldValue any

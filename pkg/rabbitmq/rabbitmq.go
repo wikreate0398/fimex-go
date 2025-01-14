@@ -5,21 +5,25 @@ import (
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"sync"
-	"wikreate/fimex/pkg/failed"
 )
+
+type Logger interface {
+	PanicOnFailed(err error, args ...interface{})
+}
 
 type RabbitMQ struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
+	log  Logger
+
+	register []RegisterDto
 }
 
-type ListnerInput struct {
-	Ctx        context.Context
+type RegisterDto struct {
 	Exchange   string
 	QueueName  string
 	RoutingKey string
 	Resolver   Resolver
-	Wg         *sync.WaitGroup
 }
 
 type Resolver interface {
@@ -34,56 +38,75 @@ type Credentials struct {
 	Password string
 }
 
-func NewRabbitMQ(conn *amqp.Connection, ch *amqp.Channel) *RabbitMQ {
-	return &RabbitMQ{conn, ch}
+func newRabbitMQ(conn *amqp.Connection, ch *amqp.Channel, log Logger) *RabbitMQ {
+	return &RabbitMQ{conn: conn, ch: ch, log: log}
 }
 
 func (r *RabbitMQ) exchangeDeclare(exchange string) {
 	err := r.ch.ExchangeDeclare(
 		exchange, "direct", true, false, false, false, nil,
 	)
-	failed.PanicOnError(err, "Failed to declare a exchange")
+	r.log.PanicOnFailed(err, "Failed to declare a exchange")
 }
 
-func (r *RabbitMQ) queueDeclare(exchange string, queueName string, routingKey string) amqp.Queue {
-	q, err := r.ch.QueueDeclare(
+func (r *RabbitMQ) queueDeclare(exchange string, queueName string, routingKey string) {
+	_, err := r.ch.QueueDeclare(
 		queueName, false, false, false, false, nil,
 	)
-	failed.PanicOnError(err, fmt.Sprintf("Failed to declare a consumers %s", queueName))
+	r.log.PanicOnFailed(err, fmt.Sprintf("Failed to declare a consumers %s", queueName))
 
 	err = r.ch.QueueBind(queueName, routingKey, exchange, false, nil)
-	failed.PanicOnError(
+
+	r.log.PanicOnFailed(
 		err,
 		fmt.Sprintf("Failed to bind a consumers %s %s with routing key: %s", queueName, exchange, routingKey),
 	)
-
-	return q
 }
 
-func (r *RabbitMQ) Listen(input ListnerInput) {
-	input.Wg.Add(1)
-	go func() {
-		defer input.Wg.Done()
-		r.exchangeDeclare(input.Exchange)
-		q := r.queueDeclare(input.Exchange, input.QueueName, input.RoutingKey)
+func (r *RabbitMQ) Register(input RegisterDto) {
+	r.exchangeDeclare(input.Exchange)
+	r.queueDeclare(input.Exchange, input.QueueName, input.RoutingKey)
 
-		msgs, err := r.ch.Consume(
-			q.Name, "", true, false, false, false, nil,
-		)
-		failed.PanicOnError(err, fmt.Sprintf("Failed to register a consumers %s", q.Name))
+	r.register = append(r.register, input)
+}
 
-		for {
-			select {
-			case msg := <-msgs:
-				input.Resolver.ToStruct(msg.Body)
-				input.Resolver.Handle()
-				continue
-			case <-input.Ctx.Done():
-				fmt.Println("Consumer stopped")
-				return
-			}
+func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
+
+	grouped := make(map[string]map[string]RegisterDto)
+	for _, input := range r.register {
+		if _, exists := grouped[input.QueueName]; !exists {
+			grouped[input.QueueName] = make(map[string]RegisterDto)
 		}
-	}()
+
+		grouped[input.QueueName][input.RoutingKey] = input
+	}
+
+	for queueName, items := range grouped {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			msgs, err := r.ch.Consume(
+				queueName, "", true, false, false, false, nil,
+			)
+			r.log.PanicOnFailed(err, fmt.Sprintf("Failed to register a consumers %s", queueName))
+
+			for {
+				select {
+				case msg := <-msgs:
+					if result, exists := items[msg.RoutingKey]; exists {
+						fmt.Println(queueName, msg.RoutingKey, msg.Exchange, string(msg.Body))
+						result.Resolver.ToStruct(msg.Body)
+						result.Resolver.Handle()
+					}
+					continue
+				case <-ctx.Done():
+					fmt.Println("Consumer stopped")
+					return
+				}
+			}
+		}()
+	}
 }
 
 func (r *RabbitMQ) Close() {
@@ -92,13 +115,13 @@ func (r *RabbitMQ) Close() {
 	fmt.Println("RabbitMQ closed")
 }
 
-func InitRabbitMQ(c Credentials) *RabbitMQ {
+func InitRabbitMQ(c Credentials, log Logger) *RabbitMQ {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%v/", c.User, c.Password, c.Host, c.Port)
 	conn, err := amqp.Dial(url)
-	failed.PanicOnError(err, "Failed to connect to RabbitMQ")
+	log.PanicOnFailed(err, "Failed to connect to RabbitMQ")
 
 	ch, err := conn.Channel()
-	failed.PanicOnError(err, "Failed to open a channel")
+	log.PanicOnFailed(err, "Failed to open a channel")
 
-	return NewRabbitMQ(conn, ch)
+	return newRabbitMQ(conn, ch, log)
 }

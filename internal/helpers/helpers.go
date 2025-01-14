@@ -1,6 +1,8 @@
 package helpers
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func ToString(v interface{}) string {
 	return reflect.ValueOf(v).String()
