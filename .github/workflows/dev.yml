@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Клонируем репозиторий
+        uses: actions/checkout@v3
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -25,8 +25,8 @@ jobs:
           go mod download
           go build -o ./bin/app ./cmd/main.go
 
-#      - name: Run tests
-#        run: go test ./...
+      - name: Run tests
+        run: go test ./...
 
       - name: Set up SSH key
         run: | 
@@ -39,32 +39,9 @@ jobs:
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
           ssh -o StrictHostKeyChecking=no -T -i ~/.ssh/id_rsa ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}
 
-      #          mkdir -p ~/.ssh
-      #          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-      #          chmod 600 ~/.ssh/id_rsa
-      #          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-      #          eval $(ssh-agent -s)
-      #          echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
-
-
-      #      - name: Deploy to server
-#        uses: appleboy/ssh-action@v1.2.0
-#        with:
-#          host: ${{ secrets.DEV_SERVER_IP }}
-#          username: ${{ secrets.DEV_SERVER_USER }}
-#          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
-#          passphrase: ${{ secrets.DEV_PASSPHRASE }}
-#          script: |
-#            scp -o StrictHostKeyChecking=no ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
-
-#      - name: Get SSH Key and set permissions
-#        run: |
-#          mkdir -p ~/.ssh
-#          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }} " > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
-#
       - name: Deploy to server
         run: |
           eval $(ssh-agent -s)
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
           scp -o StrictHostKeyChecking=no ./bin/app ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
-#
+
