@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: fimex-go
     ports:
-      - "8080:8080"
+      - "8099:8080"
     volumes:
       - ./logs:/root/logs/
       - ./configs/:/root/configs/

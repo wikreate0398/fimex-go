@@ -6,16 +6,31 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 )
 
-var (
-	logDir = "logs"
-)
+// getLogFilePath возвращает путь к лог-файлу в указанной папке
+func getLogFilePath() (string, error) {
+	// Получаем путь к текущему бинарнику или к файлу, который выполняется через `go run`
+	execPath, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+
+	// Определяем директорию проекта (папка на один уровень выше директории с бинарником)
+	return filepath.Dir(filepath.Dir(execPath)), nil
+}
 
 func NewLogger() (*LoggerManager, error) {
+	//fmt.Println(getLogFilePath())
+	//workingDir, _ := os.Executable()
+	//
+	//fmt.Println("Текущая рабочая директория:", strings.Split(workingDir, "/"))
 
-	fileName := fmt.Sprintf("%s/logs-%s.log", logDir, time.Now().Format("2006-01-02"))
+	//var logDir = fmt.Sprintf("%s/logs", cwd)
+
+	fileName := fmt.Sprintf("logs/logs-%s.log", time.Now().Format("2006-01-02"))
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
 	if err != nil {
@@ -63,7 +78,7 @@ func (l LoggerManager) Fatal(args ...interface{}) {
 }
 
 func (l LoggerManager) Panic(args ...interface{}) {
-	panic(l.logger, prepare(args...))
+	ppanic(l.logger, prepare(args...))
 }
 
 func (l LoggerManager) PanicOnErr(err error, args ...interface{}) {
@@ -110,7 +125,7 @@ func err(logger *log.Logger, input LogInput) {
 	}
 }
 
-func panic(logger *log.Logger, input LogInput) {
+func ppanic(logger *log.Logger, input LogInput) {
 	if len(input.Params) > 0 {
 		logger.WithFields(log.Fields(input.Params)).Panic(input.Msg)
 	} else {

@@ -9,9 +9,6 @@ import (
 )
 
 func main() {
-	cwd, err := os.Getwd()
-	fmt.Println(cwd, err)
-
 	log, err := logger.NewLogger()
 
 	if err != nil {
