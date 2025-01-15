@@ -156,7 +156,6 @@ func (s ProductService) Sort() {
 	}
 
 	go func() {
-		s.deps.ProductRepository.GetForSort()
 		grouped := make(map[any][]product_entities.ProductSortDto)
 		var orderedKeys []string
 
