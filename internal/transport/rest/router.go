@@ -12,7 +12,7 @@ func InitRouter(app *app_dto.Application) *gin.Engine {
 	handlers := controllers.NewControllers(app)
 
 	router := gin.New()
-	router.Use(middleware.LoggerMiddleware())
+	router.Use(middleware.LoggerMiddleware(app))
 	router.Use(gin.Recovery())
 
 	v1 := router.Group("/v1")

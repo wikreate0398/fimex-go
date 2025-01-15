@@ -8,7 +8,8 @@ import (
 )
 
 type Logger interface {
-	PanicOnFailed(err error, args ...interface{})
+	PanicOnErr(err error, args ...interface{})
+	FatalOnErr(err error, args ...interface{})
 }
 
 type RabbitMQ struct {
@@ -46,18 +47,18 @@ func (r *RabbitMQ) exchangeDeclare(exchange string) {
 	err := r.ch.ExchangeDeclare(
 		exchange, "direct", true, false, false, false, nil,
 	)
-	r.log.PanicOnFailed(err, "Failed to declare a exchange")
+	r.log.PanicOnErr(err, "Failed to declare a exchange")
 }
 
 func (r *RabbitMQ) queueDeclare(exchange string, queueName string, routingKey string) {
 	_, err := r.ch.QueueDeclare(
 		queueName, false, false, false, false, nil,
 	)
-	r.log.PanicOnFailed(err, fmt.Sprintf("Failed to declare a consumers %s", queueName))
+	r.log.PanicOnErr(err, fmt.Sprintf("Failed to declare a consumers %s", queueName))
 
 	err = r.ch.QueueBind(queueName, routingKey, exchange, false, nil)
 
-	r.log.PanicOnFailed(
+	r.log.PanicOnErr(
 		err,
 		fmt.Sprintf("Failed to bind a consumers %s %s with routing key: %s", queueName, exchange, routingKey),
 	)
@@ -89,7 +90,7 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 			msgs, err := r.ch.Consume(
 				queueName, "", true, false, false, false, nil,
 			)
-			r.log.PanicOnFailed(err, fmt.Sprintf("Failed to register a consumers %s", queueName))
+			r.log.PanicOnErr(err, fmt.Sprintf("Failed to register a consumers %s", queueName))
 
 			for {
 				select {
@@ -110,18 +111,18 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (r *RabbitMQ) Close() {
-	r.conn.Close()
-	r.ch.Close()
+	r.log.PanicOnErr(r.conn.Close(), "Failed to close connection")
+	r.log.PanicOnErr(r.ch.Close(), "Failed to close channel")
 	fmt.Println("RabbitMQ closed")
 }
 
 func InitRabbitMQ(c Credentials, log Logger) *RabbitMQ {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%v/", c.User, c.Password, c.Host, c.Port)
 	conn, err := amqp.Dial(url)
-	log.PanicOnFailed(err, "Failed to connect to RabbitMQ")
+	log.FatalOnErr(err, "Failed to connect to RabbitMQ")
 
 	ch, err := conn.Channel()
-	log.PanicOnFailed(err, "Failed to open a channel")
+	log.FatalOnErr(err, "Failed to open a channel")
 
 	return newRabbitMQ(conn, ch, log)
 }

@@ -25,5 +25,5 @@ func (r *GenerateNamesConsumer) Handle() {
 
 func (r *GenerateNamesConsumer) ToStruct(result []byte) {
 	err := json.Unmarshal(result, &r.input)
-	r.log.PanicOnFailed(err, "Unmarshal failed")
+	r.log.PanicOnErr(err, "Unmarshal failed")
 }

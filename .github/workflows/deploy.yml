@@ -1,0 +1,46 @@
+name: Deploy Go Application
+
+on:
+  push:
+    branches:
+      - main  # Укажите ветку, при пуше в которую будет запускаться деплой
+    tags:
+      - 'v*'  # Деплой при создании тега, начинающегося с 'v' (например, v1.0.0)
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Клонируем репозиторий
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'  # Укажите версию Go, которую используете
+
+      - name: Build the application
+        run: go build -o myapp ./cmd/myapp  # Собираем приложение
+        # Замените `./cmd/myapp` на путь к вашему основному пакету
+
+      - name: Run tests
+        run: go test ./...  # Запускаем тесты (опционально)
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Приватный ключ для доступа к серверу
+          SERVER_IP: ${{ secrets.SERVER_IP }}  # IP-адрес сервера
+          SERVER_USER: ${{ secrets.SERVER_USER }}  # Пользователь сервера
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}  # Путь на сервере для деплоя
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+
+          # Копируем бинарник на сервер
+          scp -o StrictHostKeyChecking=no myapp $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/myapp
+
+          # Перезапускаем приложение на сервере (пример для systemd)
+          ssh $SERVER_USER@$SERVER_IP "sudo systemctl restart myapp.service"

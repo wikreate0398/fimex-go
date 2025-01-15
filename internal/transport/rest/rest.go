@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"wikreate/fimex/internal/domain/structure/dto/app_dto"
 	"wikreate/fimex/pkg/lifecycle"
-	"wikreate/fimex/pkg/logger"
 	"wikreate/fimex/pkg/server"
 )
 
@@ -17,14 +16,14 @@ func Init(app *app_dto.Application) func(lf *lifecycle.Lifecycle) {
 		lf.Append(lifecycle.AppendLifecycle{
 			OnStart: func(ctx context.Context) any {
 				if err := obj.Start(); err != nil && err != http.ErrServerClosed {
-					logger.Error(logger.LogInput{Msg: err})
+					app.Deps.Logger.Error(err)
 				}
 				return nil
 			},
 
 			OnStop: func(ctx context.Context) any {
 				err := obj.Stop(ctx)
-				app.Deps.Logger.PanicOnFailed(err, "Failed to stop services")
+				app.Deps.Logger.PanicOnErr(err, "Failed to stop services")
 				return nil
 			},
 		})

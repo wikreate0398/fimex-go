@@ -2,25 +2,33 @@ package logger
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"time"
 )
 
-func NewLogger() *LoggerManager {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetReportCaller(true)
-	log.SetLevel(log.TraceLevel)
+var (
+	logDir = "logs"
+)
 
-	fileName := fmt.Sprintf("logs/logs-%s.log", time.Now().Format("2006-01-02"))
+func NewLogger() (*LoggerManager, error) {
+
+	fileName := fmt.Sprintf("%s/logs-%s.log", logDir, time.Now().Format("2006-01-02"))
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err == nil {
-		log.SetOutput(file)
-	} else {
-		log.Warn("Не удалось открыть файл логов, используется вывод в консоль")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 
-	return &LoggerManager{}
+	logger := log.New()
+	logger.SetFormatter(&log.JSONFormatter{})
+	logger.SetReportCaller(true)
+	logger.SetLevel(log.TraceLevel)
+	logger.SetOutput(io.MultiWriter(file, os.Stdout))
+
+	return &LoggerManager{logger: logger}, nil
 }
 
 type LogFields log.Fields
@@ -30,76 +38,96 @@ type LogInput struct {
 	Params LogFields
 }
 
-type LoggerManager struct{}
+type LoggerManager struct {
+	logger *log.Logger
+}
 
 func (l LoggerManager) Info(args ...interface{}) {
-	Info(prepare(args...))
+	info(l.logger, prepare(args...))
 }
 
 func (l LoggerManager) Debug(args ...interface{}) {
-	Debug(prepare(args...))
+	debug(l.logger, prepare(args...))
 }
 
 func (l LoggerManager) Error(args ...interface{}) {
-	Error(prepare(args...))
+	err(l.logger, prepare(args...))
 }
 
 func (l LoggerManager) Warn(args ...interface{}) {
-	Warn(prepare(args...))
+	warn(l.logger, prepare(args...))
+}
+
+func (l LoggerManager) Fatal(args ...interface{}) {
+	fatal(l.logger, prepare(args...))
 }
 
 func (l LoggerManager) Panic(args ...interface{}) {
-	Panic(prepare(args...))
+	panic(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) PanicOnFailed(err error, args ...interface{}) {
+func (l LoggerManager) PanicOnErr(err error, args ...interface{}) {
 	if err != nil {
 		l.Panic(prepare(args...))
 	}
 }
 
-func Info(input LogInput) {
-	if len(input.Params) > 0 {
-		log.WithFields(log.Fields(input.Params)).Info(input.Msg)
-	} else {
-		log.Info(input.Msg)
+func (l LoggerManager) FatalOnErr(err error, args ...interface{}) {
+	if err != nil {
+		l.Panic(prepare(args...))
 	}
 }
 
-func Debug(input LogInput) {
+func info(logger *log.Logger, input LogInput) {
 	if len(input.Params) > 0 {
-		log.WithFields(log.Fields(input.Params)).Debug(input.Msg)
+		logger.WithFields(log.Fields(input.Params)).Info(input.Msg)
 	} else {
-		log.Debug(input.Msg)
+		logger.Info(input.Msg)
 	}
 }
 
-func Warn(input LogInput) {
+func debug(logger *log.Logger, input LogInput) {
 	if len(input.Params) > 0 {
-		log.WithFields(log.Fields(input.Params)).Warn(input.Msg)
+		logger.WithFields(log.Fields(input.Params)).Debug(input.Msg)
 	} else {
-		log.Warn(input.Msg)
+		logger.Debug(input.Msg)
 	}
 }
 
-func Error(input LogInput) {
+func warn(logger *log.Logger, input LogInput) {
 	if len(input.Params) > 0 {
-		log.WithFields(log.Fields(input.Params)).Error(input.Msg)
+		logger.WithFields(log.Fields(input.Params)).Warn(input.Msg)
 	} else {
-		log.Error(input.Msg)
+		logger.Warn(input.Msg)
 	}
 }
 
-func Panic(input LogInput) {
+func err(logger *log.Logger, input LogInput) {
 	if len(input.Params) > 0 {
-		log.WithFields(log.Fields(input.Params)).Panic(input.Msg)
+		logger.WithFields(log.Fields(input.Params)).Error(input.Msg)
 	} else {
-		log.Panic(input.Msg)
+		logger.Error(input.Msg)
+	}
+}
+
+func panic(logger *log.Logger, input LogInput) {
+	if len(input.Params) > 0 {
+		logger.WithFields(log.Fields(input.Params)).Panic(input.Msg)
+	} else {
+		logger.Panic(input.Msg)
+	}
+}
+
+func fatal(logger *log.Logger, input LogInput) {
+	if len(input.Params) > 0 {
+		logger.WithFields(log.Fields(input.Params)).Fatal(input.Msg)
+	} else {
+		logger.Fatal(input.Msg)
 	}
 }
 
 func prepare(args ...interface{}) LogInput {
-	var fields LogFields
+	var fields = make(LogFields)
 	var strMsg string
 	var errMsg string
 
@@ -114,9 +142,9 @@ func prepare(args ...interface{}) LogInput {
 
 		if argErr, ok := arg.(error); ok {
 			errMsg = argErr.Error()
+			fields["stacktrace"] = fmt.Sprintf("%+v", errors.WithStack(argErr))
 		}
 	}
-
 	if strMsg != "" && errMsg != "" {
 		return LogInput{Msg: fmt.Sprintf("%v: %v", strMsg, errMsg), Params: fields}
 	} else if errMsg != "" {

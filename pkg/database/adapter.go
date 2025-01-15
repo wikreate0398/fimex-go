@@ -10,8 +10,8 @@ import (
 )
 
 type Logger interface {
-	Error(args ...interface{})
 	Panic(args ...interface{})
+	Fatal(args ...interface{})
 }
 
 type DbAdapter struct {
@@ -22,7 +22,7 @@ type DbAdapter struct {
 func NewDBManager(ctx context.Context, creds mysql.DBCreds, logger Logger) *DbAdapter {
 	db, err := mysql.NewClient(ctx, creds)
 	if err != nil {
-		logger.Panic(err, "Failed to connect to database")
+		logger.Fatal(err, "Failed to connect to database")
 	}
 	return &DbAdapter{db: db, logger: logger}
 }
@@ -65,7 +65,7 @@ func (dbm *DbAdapter) NamedExec(query string, args interface{}) {
 	_, err := dbm.db.NamedExec(query, args)
 	if err != nil {
 		dbm.logger.Panic(err,
-			fmt.Sprintf("Failed NamedExec"),
+			"Failed NamedExec",
 			map[string]any{"query": query, "args": args},
 		)
 	}

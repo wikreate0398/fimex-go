@@ -41,21 +41,24 @@ func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *inputs.Genera
 
 func (p ProductRepositoryImpl) CountTotal() int {
 	var total int
-	var query = fmt.Sprintf("select count(*) from products")
+	var query = "select count(*) from products"
 
 	p.deps.DbManager.Get(&total, query)
 	return total
 }
 
-func (p ProductRepositoryImpl) GetForSort(limit int, offset int) []product_entities.ProductSortDto {
+func (p ProductRepositoryImpl) GetForSort() []product_entities.ProductSortDto {
 	query := `
 		SELECT 
 			products.id, 
 			products.id_subcategory, 
 			products.id_category, 
-			categories.id_brand,  
-			products.page_up, 
+			categories.id_brand,   
 			categories.id_group, 
+			products.page_up, 
+			brands.page_up as brand_position,
+			categories.page_up as cat_position,
+			subcategory.page_up as subcat_position,
 			(
 				SELECT GROUP_CONCAT(
 					chars.page_up
@@ -63,7 +66,6 @@ func (p ProductRepositoryImpl) GetForSort(limit int, offset int) []product_entit
 				)
 				FROM chars
 				JOIN product_chars AS pc ON pc.id_value = chars.id AND pc.id_product = products.id  
-				JOIN chars AS parent_char ON parent_char.id = pc.id_char
 				JOIN catalog_groups_chars AS cgc ON cgc.id_char = pc.id_char AND cgc.id_group = pc.id_group
 				WHERE cgc.in_bot = 1 
 				AND pc.id_product = products.id 
@@ -73,12 +75,10 @@ func (p ProductRepositoryImpl) GetForSort(limit int, offset int) []product_entit
 		INNER JOIN categories AS categories ON categories.id = products.id_category
 		LEFT JOIN categories AS subcategory ON subcategory.id = products.id_subcategory
 		INNER JOIN brands ON brands.id = categories.id_brand
-		WHERE products.deleted_at IS NULL
-		ORDER BY brands.page_up ASC, categories.page_up ASC, subcategory.page_up
-		LIMIT ? OFFSET ?`
+		WHERE products.deleted_at IS NULL`
 
 	var dto []product_entities.ProductSortDto
-	p.deps.DbManager.Select(&dto, query, limit, offset)
+	p.deps.DbManager.Select(&dto, query)
 	return dto
 }
 

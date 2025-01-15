@@ -1,5 +1,7 @@
 package product_entities
 
+import "database/sql"
+
 type ProductCharDto struct {
 	IdProduct int    `db:"id_product"`
 	Name      string `db:"name"`
@@ -19,16 +21,20 @@ type ProductNameDto struct {
 }
 
 type ProductSortDto struct {
-	ID            int    `db:"id"`
-	IdSubcategory int    `db:"id_subcategory"`
-	IdCategory    int    `db:"id_category"`
-	IdBrand       int    `db:"id_brand"`
-	PageUp        int    `db:"page_up"`
-	IdGroup       int    `db:"id_group"`
-	Position      string `db:"position"`
+	ID             int            `db:"id"`
+	IdSubcategory  int            `db:"id_subcategory"`
+	IdCategory     int            `db:"id_category"`
+	IdBrand        int            `db:"id_brand"`
+	IdGroup        int            `db:"id_group"`
+	BrandPosition  string         `db:"brand_position"`
+	CatPosition    string         `db:"cat_position"`
+	SubCatPosition string         `db:"subcat_position"`
+	PageUp         int            `db:"page_up"`
+	Position       sql.NullString `db:"position"`
 }
 
 type ProductInsertSortDto struct {
-	ID       int `db:"id"`
-	Position int `db:"page_up"`
+	ID        int    `db:"id"`
+	Position  int    `db:"page_up"`
+	UpdatedAt string `db:"updated_at"`
 }

@@ -20,7 +20,7 @@ func NewApplication(deps *app_dto.AppDeps) *app_dto.Application {
 
 func Make(cfg *config.Config, log *logger.LoggerManager) {
 	ctx := context.Background()
- 	
+
 	dbConf := cfg.Databases.MySql
 	dbManager := database.NewDBManager(ctx, mysql.DBCreds{
 		Host:     dbConf.Host,

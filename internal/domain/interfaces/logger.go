@@ -5,5 +5,6 @@ type Logger interface {
 	Error(args ...interface{})
 	Panic(args ...interface{})
 
-	PanicOnFailed(err error, args ...interface{})
+	PanicOnErr(err error, args ...interface{})
+	FatalOnErr(err error, args ...interface{})
 }

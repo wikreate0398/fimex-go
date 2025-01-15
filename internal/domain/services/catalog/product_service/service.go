@@ -1,11 +1,13 @@
 package product_service
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 	"runtime"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/structure/inputs"
 	"wikreate/fimex/internal/helpers"
+	"wikreate/fimex/pkg/workerpool"
 )
 
 type Deps struct {
@@ -32,11 +35,77 @@ func (s ProductService) GenerateNames(payload *inputs.GenerateNamesPayloadInput)
 	start := time.Now()
 
 	var (
-		total        = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
-		limit        = 700
-		iterations   = int(math.Ceil(float64(total) / float64(limit)))
+		total      = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
+		limit      = 700
+		iterations = int(math.Ceil(float64(total) / float64(limit)))
+	)
+
+	pool := workerpool.NewWorkerPool(runtime.NumCPU())
+
+	pool.Start()
+
+	for i := 0; i < iterations; i++ {
+		pool.AddJob(func() {
+			fmt.Println("Generating names", i)
+			ids := s.deps.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
+			grouped := make(map[any][]product_entities.ProductCharDto)
+
+			data := s.deps.ProductCharRepository.GetByProductIds(ids)
+
+			for _, char := range data {
+				grouped[char.IdProduct] = append(grouped[char.IdProduct], char)
+			}
+
+			var products [][]product_entities.ProductCharDto
+
+			for _, items := range grouped {
+				slices.SortFunc(items, func(a, b product_entities.ProductCharDto) int {
+					return strings.Compare(a.Position, b.Position)
+				})
+				products = append(products, items)
+			}
+
+			var insert []product_entities.ProductNameDto
+			for _, productChars := range products {
+				var productNameChars []string
+				for _, char := range productChars {
+					name := char.ToEntity().PrepareNameForProduct()
+					if name != "" {
+						productNameChars = append(productNameChars, name)
+					}
+				}
+
+				insert = append(insert, product_entities.ProductNameDto{
+					Id:        productChars[0].IdProduct,
+					Name:      strings.Join(productNameChars, " "),
+					UpdatedAt: time.Now().Format(helpers.FullTimeFormat),
+				})
+			}
+
+			if len(insert) > 0 {
+				s.deps.ProductRepository.UpdateNames(insert, "id")
+			}
+		})
+	}
+
+	pool.Wait()
+
+	pool.Stop()
+
+	fmt.Println("GenerateNames", time.Since(start))
+}
+
+func (s ProductService) Sort() {
+	start := time.Now()
+
+	type job struct {
+		products  []product_entities.ProductSortDto
+		iteration int
+	}
+
+	var (
 		wg           = sync.WaitGroup{}
-		jobs         = make(chan int, iterations*2)
+		jobs         = make(chan job)
 		workersCount = runtime.NumCPU()
 	)
 
@@ -44,144 +113,84 @@ func (s ProductService) GenerateNames(payload *inputs.GenerateNamesPayloadInput)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for n := range jobs {
-				ids := s.deps.ProductRepository.GetIdsForGenerateNames(payload, limit, n*limit)
-				grouped := make(map[any][]product_entities.ProductCharDto)
+			for job := range jobs {
 
-				data := s.deps.ProductCharRepository.GetByProductIds(ids)
+				var (
+					subcatProducts = job.products
+					iteration      = job.iteration
+				)
 
-				for _, char := range data {
-					grouped[char.IdProduct] = append(grouped[char.IdProduct], char)
-				}
+				var insert []product_entities.ProductInsertSortDto
 
-				var products [][]product_entities.ProductCharDto
+				sort.Slice(subcatProducts, func(a, b int) bool {
+					var aProd = subcatProducts[a]
+					var bProd = subcatProducts[b]
 
-				for _, items := range grouped {
-					slices.SortFunc(items, func(a, b product_entities.ProductCharDto) int {
-						return strings.Compare(a.Position, b.Position)
-					})
-					products = append(products, items)
-				}
+					var aPup = strings.Split(aProd.Position.String, ",")
+					var bPup = strings.Split(bProd.Position.String, ",")
 
-				var insert []product_entities.ProductNameDto
-				for _, productChars := range products {
-					var productNameChars []string
-					for _, char := range productChars {
-						name := char.ToEntity().PrepareNameForProduct()
-						if name != "" {
-							productNameChars = append(productNameChars, name)
+					for key := 0; key < len(aPup) && key < len(bPup); key++ {
+						aVal, _ := strconv.Atoi(aPup[key])
+						bVal, _ := strconv.Atoi(bPup[key])
+
+						if aVal != bVal {
+							return aVal < bVal
 						}
 					}
 
-					insert = append(insert, product_entities.ProductNameDto{
-						Id:        productChars[0].IdProduct,
-						Name:      strings.Join(productNameChars, " "),
+					return len(aPup) < len(bPup)
+				})
+
+				for _, prod := range subcatProducts {
+					insert = append(insert, product_entities.ProductInsertSortDto{
+						ID:        prod.ID,
+						Position:  iteration,
 						UpdatedAt: time.Now().Format(helpers.FullTimeFormat),
 					})
+					iteration++
 				}
 
-				if len(insert) > 0 {
-					s.deps.ProductRepository.UpdateNames(insert, "id")
-				}
+				s.deps.ProductRepository.UpdatePosition(insert, "id")
 			}
 		}()
 	}
 
 	go func() {
-		for i := 0; i < iterations; i++ {
-			jobs <- i
+		s.deps.ProductRepository.GetForSort()
+		grouped := make(map[any][]product_entities.ProductSortDto)
+		var orderedKeys []string
+
+		var data = s.deps.ProductRepository.GetForSort()
+
+		slices.SortFunc(data, func(a, b product_entities.ProductSortDto) int {
+			return cmp.Or(
+				cmp.Compare(a.BrandPosition, b.BrandPosition),
+				cmp.Compare(a.CatPosition, b.CatPosition),
+				cmp.Compare(a.SubCatPosition, b.SubCatPosition),
+			)
+		})
+
+		for _, product := range data {
+			var key = fmt.Sprintf("%v.%v.%v", product.IdBrand, product.IdCategory, product.IdSubcategory)
+
+			if _, exists := grouped[key]; !exists {
+				orderedKeys = append(orderedKeys, key)
+			}
+
+			grouped[key] = append(grouped[key], product)
 		}
+
+		var num = 1
+		for i, key := range orderedKeys {
+			var products = grouped[key]
+			jobs <- job{products: products, iteration: num}
+			num = i * (len(products) + 1)
+		}
+
 		close(jobs)
 	}()
 
 	wg.Wait()
 
-	fmt.Println("GenerateNames", time.Since(start))
-}
-
-func (s ProductService) Sort() {
-	type job struct {
-		products  map[any]map[any]map[any][]product_entities.ProductSortDto
-		iteration int
-	}
-
-	start := time.Now()
-	var (
-		total        = s.deps.ProductRepository.CountTotal()
-		limit        = 1000
-		wg           = sync.WaitGroup{}
-		jobs         = make(chan job)
-		workersCount = 5
-	)
-
-	for i := 0; i < workersCount; i++ {
-		go func() {
-			for job := range jobs {
-				iteration := job.iteration
-				var insert []product_entities.ProductInsertSortDto
-				for _, brandProducts := range job.products {
-					for _, catProducts := range brandProducts {
-						for _, subcatProducts := range catProducts {
-
-							sort.Slice(subcatProducts, func(a, b int) bool {
-								var aProd = subcatProducts[a]
-								var bProd = subcatProducts[b]
-
-								var aPup = strings.Split(aProd.Position, ",")
-								var bPup = strings.Split(bProd.Position, ",")
-
-								for key := 0; key < len(aPup) && key < len(bPup); key++ {
-									if aPup[key] != bPup[key] {
-										return aPup[key] < bPup[key]
-									}
-								}
-								return true
-							})
-
-							for _, prod := range subcatProducts {
-								insert = append(insert, product_entities.ProductInsertSortDto{
-									ID:       prod.ID,
-									Position: iteration,
-								})
-								iteration++
-							}
-						}
-					}
-				}
-
-				fmt.Println("Hello")
-
-				//s.deps.ProductRepository.UpdatePosition(insert, "id")
-			}
-		}()
-	}
-
-	iterations := int(math.Ceil(float64(total) / float64(limit)))
-	for i := 0; i < iterations; i++ {
-		wg.Add(1)
-		go func() {
-
-			grouped := make(map[any]map[any]map[any][]product_entities.ProductSortDto)
-
-			result := s.deps.ProductRepository.GetForSort(limit, i*limit)
-
-			for _, product := range result {
-				grouped[product.IdBrand][product.IdCategory][product.IdSubcategory] =
-					append(grouped[product.IdBrand][product.IdCategory][product.IdSubcategory], product)
-			}
-
-			jobs <- job{
-				products:  grouped,
-				iteration: i,
-			}
-			wg.Done()
-		}()
-	}
-
-	go func() {
-		wg.Wait()
-		close(jobs)
-	}()
-
-	fmt.Println("hello", time.Since(start))
+	fmt.Println("sort", time.Since(start))
 }

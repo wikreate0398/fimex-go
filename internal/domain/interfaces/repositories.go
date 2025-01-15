@@ -9,7 +9,7 @@ type ProductRepository interface {
 	GetIdsForGenerateNames(payload *inputs.GenerateNamesPayloadInput, limit int, offset int) []string
 	CountTotalForGenerateNames(payload *inputs.GenerateNamesPayloadInput) int
 	CountTotal() int
-	GetForSort(limit int, offset int) []product_entities.ProductSortDto
+	GetForSort() []product_entities.ProductSortDto
 	UpdateNames(arg interface{}, key string)
 	UpdatePosition(arg interface{}, key string)
 }
