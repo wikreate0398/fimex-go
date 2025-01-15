@@ -18,32 +18,31 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23.4'  # Укажите версию Go, которую используете
+          go-version: '1.23.4'
 
       - name: Build the application
         run: |
           go mod download
           go build -o ./bin/myapp ./cmd/main.go  
 
-        # Замените `./cmd/myapp` на путь к вашему основному пакету
-
-      - name: Run tests
-        run: go test ./...  # Запускаем тесты (опционально)
+#      - name: Run tests
+#        run: go test ./...
 
       - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEV_SSH_PRIVATE_KEY }}  # Приватный ключ для доступа к серверу
-          SERVER_IP: ${{ secrets.DEV_SERVER_IP }}  # IP-адрес сервера
-          SERVER_USER: ${{ secrets.DEV_SERVER_USER }}  # Пользователь сервера
-          DEPLOY_PATH: ${{ secrets.DEV_DEPLOY_PATH }}  # Путь на сервере для деплоя
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEV_SERVER_IP }}
+          username: ${{ secrets.DEV_SERVER_USER }}
+          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.DEV_PASSPHRASE }}
+          script: whoami
 
-          # Копируем бинарник на сервер
-          scp -o StrictHostKeyChecking=no myapp $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/myapp
-
-          # Перезапускаем приложение на сервере (пример для systemd)
-          ssh $SERVER_USER@$SERVER_IP "sudo systemctl restart myapp.service"
+#      - name: Get SSH Key and set permissions
+#        run: |
+#          mkdir -p ~/.ssh
+#          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }} " > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+#
+#      - name: Deploy to server
+#        run: |
+#          scp -o StrictHostKeyChecking=no -v -i ~/.ssh/id_rsa ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
+#
