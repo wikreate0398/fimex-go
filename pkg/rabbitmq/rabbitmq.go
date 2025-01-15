@@ -113,7 +113,7 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 func (r *RabbitMQ) Close() {
 	r.log.PanicOnErr(r.conn.Close(), "Failed to close connection")
 	r.log.PanicOnErr(r.ch.Close(), "Failed to close channel")
-	fmt.Println("RabbitMQ closed")
+	//fmt.Println("RabbitMQ closed")
 }
 
 func InitRabbitMQ(c Credentials, log Logger) *RabbitMQ {
