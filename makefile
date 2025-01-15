@@ -2,14 +2,28 @@ PROJECT_DIR = $(shell pwd)
 PROJECT_BIN = $(PROJECT_DIR)/.bin
 CMD_DIR = $(PROJECT_DIR)/cmd
 $(shell [ -f bin ] || mkdir -p $(PROJECT_BIN))
-APP_NAME = myapp
+APP_NAME = app
 PATH := $(PROJECT_BIN):$(PATH)
 
+#git
+COMMIT ?= "fix"
+BRANCH ?= "dev"
+
+#lint
 GOLANGCI_LINT = $(PROJECT_BIN)/golangci-lint
 
-build:
-	go build -o $(PROJECT_BIN)/$(APP_NAME) $(CMD_DIR)
+push:
+	git add .
+	git commit -m "$(COMMIT)"
+	git push origin $(BRANCH)
 
+run:
+	go run ./cmd/main.go
+
+act:
+	act --container-architecture linux/amd64 --secret-file ./.github/.secrets
+
+#BUILD
 build-linux:
 	GOOS=linux GOARCH=amd64 go build -o $(PROJECT_BIN)/$(APP_NAME) $(CMD_DIR)
 
@@ -22,6 +36,7 @@ build-mac:
 clean:
 	rm -rf $(PROJECT_BIN)
 
+#LINTER
 .PHONY: .install-linter
 .install-linter:
 	### INSTALL GOLANGCI-LINT ###

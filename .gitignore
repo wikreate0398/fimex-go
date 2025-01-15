@@ -1,3 +1,5 @@
 .env
-go.sum
 .idea
+.github/.stage-secrets
+.github/.prod-secrets
+/docker

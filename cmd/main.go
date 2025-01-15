@@ -9,9 +9,6 @@ import (
 )
 
 func main() {
-	cwd, err := os.Getwd()
-	fmt.Println(cwd, err)
-
 	log, err := logger.NewLogger()
 
 	if err != nil {
@@ -20,7 +17,6 @@ func main() {
 	}
 
 	cfg, err := config.Init("stage")
-	fmt.Println(err)
 	log.FatalOnErr(err, "Failed to initialize config")
 
 	app.Make(cfg, log)
