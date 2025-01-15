@@ -34,9 +34,10 @@ jobs:
           echo "${{ secrets.DEV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
           eval $(ssh-agent -s)
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}
+          ssh -T -i ~/.ssh/id_rsa ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}
 
       #          mkdir -p ~/.ssh
       #          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
