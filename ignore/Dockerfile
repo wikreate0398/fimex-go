@@ -5,7 +5,7 @@ FROM golang:1.23.4 as builder
 WORKDIR /go/src/github.com/wikreate0398/fimex-go/
 
 # Копируем файлы в рабочую директорию
-COPY . .
+COPY .. .
 
 # Загружаем зависимости
 RUN go mod download

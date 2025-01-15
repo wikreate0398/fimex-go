@@ -21,7 +21,10 @@ jobs:
           go-version: '1.23.4'  # Укажите версию Go, которую используете
 
       - name: Build the application
-        run: go build -o ./bin/myapp ./cmd/main.go  # Собираем приложение
+        run: |
+          go mod download
+          go build -o ./bin/myapp ./cmd/main.go  
+
         # Замените `./cmd/myapp` на путь к вашему основному пакету
 
       - name: Run tests
