@@ -2,7 +2,7 @@ PROJECT_DIR = $(shell pwd)
 PROJECT_BIN = $(PROJECT_DIR)/.bin
 CMD_DIR = $(PROJECT_DIR)/cmd
 $(shell [ -f bin ] || mkdir -p $(PROJECT_BIN))
-APP_NAME = myapp
+APP_NAME = app
 PATH := $(PROJECT_BIN):$(PATH)
 
 #git

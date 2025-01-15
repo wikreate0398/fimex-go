@@ -1,2 +1,5 @@
 .env
 .idea
+.github/.stage-secrets
+.github/.prod-secrets
+/docker
