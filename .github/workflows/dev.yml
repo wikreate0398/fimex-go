@@ -35,7 +35,8 @@ jobs:
           username: ${{ secrets.DEV_SERVER_USER }}
           key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.DEV_PASSPHRASE }}
-          script: whoami
+          script: |
+            scp -o StrictHostKeyChecking=no ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
 
 #      - name: Get SSH Key and set permissions
 #        run: |
