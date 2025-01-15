@@ -23,7 +23,7 @@ jobs:
       - name: Build the application
         run: |
           go mod download
-          go build -o ./.bin/app ./cmd/main.go
+          go build -o ./.bin/dev ./cmd/main.go
 
       - name: Run tests
         run: go test ./...
@@ -44,6 +44,6 @@ jobs:
           eval $(ssh-agent -s)
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
           
-          scp -o StrictHostKeyChecking=no ./.bin/app ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}/.bin
+          scp -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}/.bin/
           scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}/
 
