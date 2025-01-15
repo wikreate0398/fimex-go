@@ -23,7 +23,7 @@ jobs:
       - name: Build the application
         run: |
           go mod download
-          go build -o ./.bin/dev ./cmd/main.go
+          GOOS=linux GOARCH=amd64 go build -o ./.bin/dev ./cmd/main.go
 
       - name: Run tests
         run: go test ./...
