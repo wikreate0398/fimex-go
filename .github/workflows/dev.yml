@@ -35,7 +35,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           eval $(ssh-agent -s)
-          echo "${{ secrets.DEV_PASSPHRASE }}" |  ssh-add ~/.ssh/id_rsa
+          echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
 
       #          mkdir -p ~/.ssh
       #          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -62,5 +62,5 @@ jobs:
 #
       - name: Deploy to server
         run: |
-          scp -vvv -i ~/.ssh/id_rsa ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
+          scp  ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
 #
