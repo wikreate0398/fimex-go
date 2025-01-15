@@ -6,30 +6,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
-	"path/filepath"
+	"strings"
 	"time"
 )
 
-// getLogFilePath возвращает путь к лог-файлу в указанной папке
-func getLogFilePath() (string, error) {
-	// Получаем путь к текущему бинарнику или к файлу, который выполняется через `go run`
-	execPath, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-
-	// Определяем директорию проекта (папка на один уровень выше директории с бинарником)
-	return filepath.Dir(filepath.Dir(execPath)), nil
-}
-
 func NewLogger() (*LoggerManager, error) {
-	//fmt.Println(getLogFilePath())
-	//workingDir, _ := os.Executable()
-	//
-	//fmt.Println("Текущая рабочая директория:", strings.Split(workingDir, "/"))
-
-	//var logDir = fmt.Sprintf("%s/logs", cwd)
-
 	fileName := fmt.Sprintf("logs/logs-%s.log", time.Now().Format("2006-01-02"))
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
@@ -83,13 +64,13 @@ func (l LoggerManager) Panic(args ...interface{}) {
 
 func (l LoggerManager) PanicOnErr(err error, args ...interface{}) {
 	if err != nil {
-		l.Panic(prepare(args...))
+		l.Panic(append(args, err)...)
 	}
 }
 
 func (l LoggerManager) FatalOnErr(err error, args ...interface{}) {
 	if err != nil {
-		l.Panic(prepare(args...))
+		l.Fatal(append(args, err)...)
 	}
 }
 
@@ -142,29 +123,38 @@ func fatal(logger *log.Logger, input LogInput) {
 }
 
 func prepare(args ...interface{}) LogInput {
+
 	var fields = make(LogFields)
-	var strMsg string
-	var errMsg string
+	var msgs []string
+	var errs []string
 
 	for _, arg := range args {
 		if argFields, ok := arg.(map[string]interface{}); ok {
-			fields = argFields
+			for k, v := range argFields {
+				fields[k] = v
+			}
 		}
 
 		if argString, ok := arg.(string); ok {
-			strMsg = argString
+			msgs = append(msgs, argString)
 		}
 
 		if argErr, ok := arg.(error); ok {
-			errMsg = argErr.Error()
+			errs = append(errs, argErr.Error())
 			fields["stacktrace"] = fmt.Sprintf("%+v", errors.WithStack(argErr))
 		}
 	}
-	if strMsg != "" && errMsg != "" {
-		return LogInput{Msg: fmt.Sprintf("%v: %v", strMsg, errMsg), Params: fields}
-	} else if errMsg != "" {
-		return LogInput{Msg: errMsg, Params: fields}
+
+	var msgStr = strings.Join(msgs, "; ")
+	var errStr = strings.Join(errs, "; ")
+
+	if msgStr != "" && errStr != "" {
+		return LogInput{Msg: fmt.Sprintf("%v: %v", msgStr, errStr), Params: fields}
+	} else if errStr != "" {
+		return LogInput{Msg: errStr, Params: fields}
+	} else if msgStr != "" {
+		return LogInput{Msg: msgStr, Params: fields}
 	}
 
-	return LogInput{Msg: strMsg, Params: fields}
+	return LogInput{Msg: msgStr, Params: fields}
 }

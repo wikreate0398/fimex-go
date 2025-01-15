@@ -17,7 +17,6 @@ func main() {
 	}
 
 	cfg, err := config.Init("stage")
-	fmt.Println(err)
 	log.FatalOnErr(err, "Failed to initialize config")
 
 	app.Make(cfg, log)

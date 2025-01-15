@@ -10,6 +10,17 @@ GOLANGCI_LINT = $(PROJECT_BIN)/golangci-lint
 build:
 	go build -o $(PROJECT_BIN)/$(APP_NAME) $(CMD_DIR)
 
+act:
+	act --container-architecture linux/amd64 --secret-file ./.github/.secrets
+
+def-push:
+	git add .
+	git commit -m "fix"
+	git push
+
+run:
+	go run ./cmd/main.go
+
 build-linux:
 	GOOS=linux GOARCH=amd64 go build -o $(PROJECT_BIN)/$(APP_NAME) $(CMD_DIR)
 
