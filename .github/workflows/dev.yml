@@ -54,5 +54,5 @@ jobs:
 #
       - name: Deploy to server
         run: |
-          scp -o StrictHostKeyChecking=no -v -i ~/.ssh/id_rsa ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
+          scp -vvv -i ~/.ssh/id_rsa ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
 #
