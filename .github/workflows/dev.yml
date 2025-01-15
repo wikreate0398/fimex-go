@@ -64,5 +64,7 @@ jobs:
 #
       - name: Deploy to server
         run: |
-          scp -o StrictHostKeyChecking=no ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
+          eval $(ssh-agent -s)
+          echo "${{ secrets.DEV_PASSPHRASE }}"
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
 #
