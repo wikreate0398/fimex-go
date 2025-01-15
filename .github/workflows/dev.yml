@@ -52,7 +52,7 @@ jobs:
 #          mkdir -p ~/.ssh
 #          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }} " > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
 #
-#      - name: Deploy to server
-#        run: |
-#          scp -o StrictHostKeyChecking=no -v -i ~/.ssh/private.key ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
+      - name: Deploy to server
+        run: |
+          scp -o StrictHostKeyChecking=no ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
 #
