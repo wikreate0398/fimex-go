@@ -5,6 +5,10 @@ $(shell [ -f bin ] || mkdir -p $(PROJECT_BIN))
 APP_NAME = myapp
 PATH := $(PROJECT_BIN):$(PATH)
 
+#git
+COMMIT ?= "fix"
+BRANCH ?= "dev"
+
 GOLANGCI_LINT = $(PROJECT_BIN)/golangci-lint
 
 build:
@@ -13,10 +17,10 @@ build:
 act:
 	act --container-architecture linux/amd64 --secret-file ./.github/.secrets
 
-def-push:
+push:
 	git add .
-	git commit -m "fix"
-	git push origin dev
+	git commit -m "$(COMMIT)"
+	git push origin $(BRANCH)
 
 run:
 	go run ./cmd/main.go
