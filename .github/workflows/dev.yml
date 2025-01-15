@@ -35,17 +35,7 @@ jobs:
           username: ${{ secrets.DEV_SERVER_USER }}
           key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.DEV_PASSPHRASE }}
-          script: scp -o StrictHostKeyChecking=no ./bin/myapp ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:${{ secrets.DEV_DEPLOY_PATH }}
-
-#      - name: Create SSH key
-#        env:
-#          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-#        run: |
-#          mkdir -p ~/.ssh
-#          chmod 700 ~/.ssh
-#          echo "$SSH_PRIVATE_KEY" > ~/.ssh/private.key
-#          sudo chmod 400 ~/.ssh/private.key
-#          echo 'echo ${{secrets.SSH_PWD}}' > ~/.ssh/passphrase && chmod 700 ~/.ssh/passphrase
+          script: whoami
 
 #      - name: Get SSH Key and set permissions
 #        run: |
