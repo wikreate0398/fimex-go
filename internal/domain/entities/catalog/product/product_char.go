@@ -1,7 +1,8 @@
-package product_entities
+package product
 
 import (
-	"wikreate/fimex/internal/adapters/emoji"
+	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
+	"wikreate/fimex/internal/infrastructure/adapters/emoji"
 )
 
 type ProductChar struct {
@@ -12,7 +13,7 @@ type ProductChar struct {
 	position  string
 }
 
-func NewProductCharEntity(dto ProductCharDto) *ProductChar {
+func NewProductChar(dto catalog_dto.ProductCharQueryDto) *ProductChar {
 	return &ProductChar{
 		idProduct: dto.IdProduct,
 		name:      dto.Name,

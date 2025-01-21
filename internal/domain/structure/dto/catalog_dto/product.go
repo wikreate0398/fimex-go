@@ -1,8 +1,16 @@
-package product_entities
+package catalog_dto
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
-type ProductCharDto struct {
+type GenerateNamesInputDto struct {
+	IdGroup  int   `json:"id_group"`
+	IdsChars []int `json:"ids_chars"`
+	IdsVal   []int `json:"ids_val"`
+}
+
+type ProductCharQueryDto struct {
 	IdProduct int    `db:"id_product"`
 	Name      string `db:"name"`
 	UseInName bool   `db:"use_product_name"`
@@ -10,17 +18,13 @@ type ProductCharDto struct {
 	Position  string `db:"position"`
 }
 
-func (p ProductCharDto) ToEntity() *ProductChar {
-	return NewProductCharEntity(p)
-}
-
-type ProductNameDto struct {
+type ProductNameStoreDto struct {
 	Id        int    `db:"id"`
 	Name      string `db:"name"`
 	UpdatedAt string `db:"updated_at"`
 }
 
-type ProductSortDto struct {
+type ProductSortQueryDto struct {
 	ID             int            `db:"id"`
 	IdSubcategory  int            `db:"id_subcategory"`
 	IdCategory     int            `db:"id_category"`
@@ -33,7 +37,7 @@ type ProductSortDto struct {
 	Position       sql.NullString `db:"position"`
 }
 
-type ProductInsertSortDto struct {
+type ProductSortStoreDto struct {
 	ID        int    `db:"id"`
 	Position  int    `db:"page_up"`
 	UpdatedAt string `db:"updated_at"`

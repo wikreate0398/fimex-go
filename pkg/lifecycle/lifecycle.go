@@ -22,17 +22,17 @@ func (lm *LifecycleManager) Run() {
 	for _, instance := range lm.instances {
 		wg.Add(1)
 
-		go func() {
+		go func(instance Lifecycle) {
 			defer wg.Done()
 			instance.append.OnStart(ctx)
-		}()
+		}(instance)
 	}
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
 	<-shutdown //ждем завершения канала
-	
+
 	fmt.Println("Shutting down...")
 	for _, instance := range lm.instances {
 		instance.append.OnStop(ctx)

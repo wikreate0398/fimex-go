@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"wikreate/fimex/internal/helpers"
 )
 
 type BatchUpdate struct {
@@ -56,8 +55,8 @@ func (b *BatchUpdate) query() (string, error) {
 			}
 
 			v := val.fieldValue
-			if helpers.IsString(v) {
-				v = b.escapeSQL(helpers.ToString(v))
+			if _, ok := v.(string); ok {
+				v = b.escapeSQL(fmt.Sprintf("%v", v))
 			}
 
 			str := fmt.Sprintf("WHEN %s = %v THEN '%v'", b.identifier, identifierVal, v)

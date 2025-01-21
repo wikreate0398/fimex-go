@@ -2,9 +2,8 @@ package product_repository
 
 import (
 	"fmt"
-	"wikreate/fimex/internal/domain/entities/catalog/product_entities"
-	"wikreate/fimex/internal/domain/structure/dto/repo_dto"
-	"wikreate/fimex/internal/domain/structure/inputs"
+	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
+	"wikreate/fimex/internal/dto/repo_dto"
 	"wikreate/fimex/internal/helpers"
 )
 
@@ -16,7 +15,7 @@ func NewProductRepository(deps *repo_dto.Deps) *ProductRepositoryImpl {
 	return &ProductRepositoryImpl{deps}
 }
 
-func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *inputs.GenerateNamesPayloadInput, limit int, offset int) []string {
+func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.GenerateNamesInputDto, limit int, offset int) []string {
 	var cond, args = condGenerateNamesPayload(payload)
 	args = append(args, limit, offset)
 
@@ -29,7 +28,7 @@ func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *inputs.GenerateNa
 	return ids
 }
 
-func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *inputs.GenerateNamesPayloadInput) int {
+func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *catalog_dto.GenerateNamesInputDto) int {
 	var cond, args = condGenerateNamesPayload(payload)
 
 	var total int
@@ -47,7 +46,7 @@ func (p ProductRepositoryImpl) CountTotal() int {
 	return total
 }
 
-func (p ProductRepositoryImpl) GetForSort() []product_entities.ProductSortDto {
+func (p ProductRepositoryImpl) GetForSort() []catalog_dto.ProductSortQueryDto {
 	query := `
 		SELECT 
 			products.id, 
@@ -77,7 +76,7 @@ func (p ProductRepositoryImpl) GetForSort() []product_entities.ProductSortDto {
 		INNER JOIN brands ON brands.id = categories.id_brand
 		WHERE products.deleted_at IS NULL`
 
-	var dto []product_entities.ProductSortDto
+	var dto []catalog_dto.ProductSortQueryDto
 	p.deps.DbManager.Select(&dto, query)
 	return dto
 }

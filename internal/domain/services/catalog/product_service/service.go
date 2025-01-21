@@ -11,16 +11,15 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"wikreate/fimex/internal/domain/entities/catalog/product_entities"
-	"wikreate/fimex/internal/domain/interfaces"
-	"wikreate/fimex/internal/domain/structure/inputs"
+	"wikreate/fimex/internal/domain/entities/catalog/product"
+	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
 	"wikreate/fimex/internal/helpers"
 	"wikreate/fimex/pkg/workerpool"
 )
 
 type Deps struct {
-	ProductRepository     interfaces.ProductRepository
-	ProductCharRepository interfaces.ProductCharRepository
+	ProductRepository     ProductRepository
+	ProductCharRepository ProductCharRepository
 }
 
 type ProductService struct {
@@ -31,7 +30,7 @@ func NewProductService(deps *Deps) *ProductService {
 	return &ProductService{deps: deps}
 }
 
-func (s ProductService) GenerateNames(payload *inputs.GenerateNamesPayloadInput) {
+func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
 	start := time.Now()
 
 	var (
@@ -45,47 +44,48 @@ func (s ProductService) GenerateNames(payload *inputs.GenerateNamesPayloadInput)
 	pool.Start()
 
 	for i := 0; i < iterations; i++ {
-		pool.AddJob(func() {
-			fmt.Println("Generating names", i)
-			ids := s.deps.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
-			grouped := make(map[any][]product_entities.ProductCharDto)
+		pool.AddJob(func(i int) func() {
+			return func() {
+				ids := s.deps.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
+				grouped := make(map[any][]catalog_dto.ProductCharQueryDto)
 
-			data := s.deps.ProductCharRepository.GetByProductIds(ids)
+				data := s.deps.ProductCharRepository.GetByProductIds(ids)
 
-			for _, char := range data {
-				grouped[char.IdProduct] = append(grouped[char.IdProduct], char)
-			}
-
-			var products [][]product_entities.ProductCharDto
-
-			for _, items := range grouped {
-				slices.SortFunc(items, func(a, b product_entities.ProductCharDto) int {
-					return strings.Compare(a.Position, b.Position)
-				})
-				products = append(products, items)
-			}
-
-			var insert []product_entities.ProductNameDto
-			for _, productChars := range products {
-				var productNameChars []string
-				for _, char := range productChars {
-					name := char.ToEntity().PrepareNameForProduct()
-					if name != "" {
-						productNameChars = append(productNameChars, name)
-					}
+				for _, char := range data {
+					grouped[char.IdProduct] = append(grouped[char.IdProduct], char)
 				}
 
-				insert = append(insert, product_entities.ProductNameDto{
-					Id:        productChars[0].IdProduct,
-					Name:      strings.Join(productNameChars, " "),
-					UpdatedAt: time.Now().Format(helpers.FullTimeFormat),
-				})
-			}
+				var products [][]catalog_dto.ProductCharQueryDto
 
-			if len(insert) > 0 {
-				s.deps.ProductRepository.UpdateNames(insert, "id")
+				for _, items := range grouped {
+					slices.SortFunc(items, func(a, b catalog_dto.ProductCharQueryDto) int {
+						return strings.Compare(a.Position, b.Position)
+					})
+					products = append(products, items)
+				}
+
+				var insert []catalog_dto.ProductNameStoreDto
+				for _, productChars := range products {
+					var productNameChars []string
+					for _, char := range productChars {
+						name := product.NewProductChar(char).PrepareNameForProduct()
+						if name != "" {
+							productNameChars = append(productNameChars, name)
+						}
+					}
+
+					insert = append(insert, catalog_dto.ProductNameStoreDto{
+						Id:        productChars[0].IdProduct,
+						Name:      strings.Join(productNameChars, " "),
+						UpdatedAt: time.Now().Format(helpers.FullTimeFormat),
+					})
+				}
+
+				if len(insert) > 0 {
+					s.deps.ProductRepository.UpdateNames(insert, "id")
+				}
 			}
-		})
+		}(i))
 	}
 
 	pool.Wait()
@@ -99,7 +99,7 @@ func (s ProductService) Sort() {
 	start := time.Now()
 
 	type job struct {
-		products  []product_entities.ProductSortDto
+		products  []catalog_dto.ProductSortQueryDto
 		iteration int
 	}
 
@@ -120,7 +120,7 @@ func (s ProductService) Sort() {
 					iteration      = job.iteration
 				)
 
-				var insert []product_entities.ProductInsertSortDto
+				var insert []catalog_dto.ProductSortStoreDto
 
 				sort.Slice(subcatProducts, func(a, b int) bool {
 					var aProd = subcatProducts[a]
@@ -142,7 +142,7 @@ func (s ProductService) Sort() {
 				})
 
 				for _, prod := range subcatProducts {
-					insert = append(insert, product_entities.ProductInsertSortDto{
+					insert = append(insert, catalog_dto.ProductSortStoreDto{
 						ID:        prod.ID,
 						Position:  iteration,
 						UpdatedAt: time.Now().Format(helpers.FullTimeFormat),
@@ -156,12 +156,12 @@ func (s ProductService) Sort() {
 	}
 
 	go func() {
-		grouped := make(map[any][]product_entities.ProductSortDto)
+		grouped := make(map[any][]catalog_dto.ProductSortQueryDto)
 		var orderedKeys []string
 
 		var data = s.deps.ProductRepository.GetForSort()
 
-		slices.SortFunc(data, func(a, b product_entities.ProductSortDto) int {
+		slices.SortFunc(data, func(a, b catalog_dto.ProductSortQueryDto) int {
 			return cmp.Or(
 				cmp.Compare(a.BrandPosition, b.BrandPosition),
 				cmp.Compare(a.CatPosition, b.CatPosition),

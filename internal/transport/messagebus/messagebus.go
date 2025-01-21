@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"wikreate/fimex/internal/domain/structure/dto/app_dto"
+	"wikreate/fimex/internal/dto/app_dto"
 	"wikreate/fimex/internal/transport/messagebus/consumers"
 	"wikreate/fimex/pkg/lifecycle"
 	"wikreate/fimex/pkg/rabbitmq"
@@ -17,7 +17,6 @@ func Init(application *app_dto.Application) func(lf *lifecycle.Lifecycle) {
 			OnStart: func(ctx context.Context) any {
 				fmt.Println("Message bus Init")
 
-				//ctx, cancel := context.WithCancel(ctx)
 				queues := consumers.NewHandlers(application)
 
 				conf := application.Deps.Config.RabbitMQ
@@ -44,6 +43,13 @@ func Init(application *app_dto.Application) func(lf *lifecycle.Lifecycle) {
 					QueueName:  "products_queue",
 					RoutingKey: "sort.product",
 					Resolver:   queues.SortProductsQueue,
+				})
+
+				rbMq.Register(rabbitmq.RegisterDto{
+					Exchange:   "payment",
+					QueueName:  "ballance_queue",
+					RoutingKey: "recalculate.history",
+					Resolver:   queues.RecalcBallanceHistory,
 				})
 
 				rbMq.Listen(ctx, wg)

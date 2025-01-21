@@ -12,8 +12,7 @@ func NewSortProductsConsumer(service *product_service.ProductService) *SortProdu
 	return &SortProductsConsumer{service}
 }
 
-func (r *SortProductsConsumer) Handle() {
+func (r *SortProductsConsumer) Handle(result []byte) error {
 	r.service.Sort()
+	return nil
 }
-
-func (r *SortProductsConsumer) ToStruct(result []byte) {}

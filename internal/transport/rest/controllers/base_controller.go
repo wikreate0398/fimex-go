@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"wikreate/fimex/internal/domain/structure/dto/app_dto"
+	"wikreate/fimex/internal/dto/app_dto"
 )
 
 type Json map[string]interface{}

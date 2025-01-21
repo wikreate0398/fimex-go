@@ -3,8 +3,8 @@ package repositories
 import (
 	"fmt"
 	"strings"
-	"wikreate/fimex/internal/domain/entities/catalog/product_entities"
-	"wikreate/fimex/internal/domain/structure/dto/repo_dto"
+	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
+	"wikreate/fimex/internal/dto/repo_dto"
 )
 
 type ProductCharRepositoryImpl struct {
@@ -15,8 +15,8 @@ func NewProductCharRepository(deps *repo_dto.Deps) *ProductCharRepositoryImpl {
 	return &ProductCharRepositoryImpl{deps}
 }
 
-func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []product_entities.ProductCharDto {
-	var productChars []product_entities.ProductCharDto
+func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.ProductCharQueryDto {
+	var productChars []catalog_dto.ProductCharQueryDto
 
 	query := fmt.Sprintf(`
 			select id_product,name,use_product_name,add_emodji,cgc.position 

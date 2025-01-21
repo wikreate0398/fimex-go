@@ -8,6 +8,8 @@ import (
 )
 
 type Logger interface {
+	Error(args ...interface{})
+
 	PanicOnErr(err error, args ...interface{})
 	FatalOnErr(err error, args ...interface{})
 }
@@ -28,8 +30,7 @@ type RegisterDto struct {
 }
 
 type Resolver interface {
-	Handle()
-	ToStruct(result []byte)
+	Handle(result []byte) error
 }
 
 type Credentials struct {
@@ -84,8 +85,13 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 
 	for queueName, items := range grouped {
 		wg.Add(1)
-		go func() {
+		go func(queueName string, items map[string]RegisterDto) {
 			defer wg.Done()
+
+			defer func() {
+				if r := recover(); r != nil {
+				}
+			}()
 
 			msgs, err := r.ch.Consume(
 				queueName, "", true, false, false, false, nil,
@@ -97,8 +103,9 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 				case msg := <-msgs:
 					if result, exists := items[msg.RoutingKey]; exists {
 						fmt.Println(queueName, msg.RoutingKey, msg.Exchange, string(msg.Body))
-						result.Resolver.ToStruct(msg.Body)
-						result.Resolver.Handle()
+						if err := result.Resolver.Handle(msg.Body); err != nil {
+							r.log.Error(err)
+						}
 					}
 					continue
 				case <-ctx.Done():
@@ -106,7 +113,7 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 					return
 				}
 			}
-		}()
+		}(queueName, items)
 	}
 }
 

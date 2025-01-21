@@ -4,7 +4,7 @@ import (
 	"context"
 	"wikreate/fimex/internal/config"
 	domain_serivces "wikreate/fimex/internal/domain/services"
-	"wikreate/fimex/internal/domain/structure/dto/app_dto"
+	"wikreate/fimex/internal/dto/app_dto"
 	"wikreate/fimex/internal/infrastructure/database/repositories"
 	"wikreate/fimex/internal/transport/messagebus"
 	"wikreate/fimex/internal/transport/rest"
@@ -29,7 +29,7 @@ func Make(cfg *config.Config, log *logger.LoggerManager) {
 		Password: dbConf.Password,
 		Database: dbConf.Database,
 	}, log)
- 
+
 	repo := repositories.NewRepositories(dbManager)
 	serv := domain_serivces.NewServices(repo)
 

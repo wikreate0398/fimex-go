@@ -3,7 +3,7 @@ package rest
 import (
 	"context"
 	"net/http"
-	"wikreate/fimex/internal/domain/structure/dto/app_dto"
+	"wikreate/fimex/internal/dto/app_dto"
 	"wikreate/fimex/pkg/lifecycle"
 	"wikreate/fimex/pkg/server"
 )

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - dev
-      - main
     tags:
       - 'v*'
 
@@ -69,7 +68,6 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
           eval $(ssh-agent -s)
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no -T -i ~/.ssh/id_rsa ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}
 
       - name: Deploy to server
         run: |

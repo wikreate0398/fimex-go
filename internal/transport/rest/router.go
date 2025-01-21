@@ -2,7 +2,7 @@ package rest
 
 import (
 	"github.com/gin-gonic/gin"
-	"wikreate/fimex/internal/domain/structure/dto/app_dto"
+	"wikreate/fimex/internal/dto/app_dto"
 	"wikreate/fimex/internal/transport/rest/controllers"
 	"wikreate/fimex/internal/transport/rest/middleware"
 )

@@ -2,28 +2,27 @@ package consumers
 
 import (
 	"encoding/json"
-	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/services/catalog/product_service"
-	"wikreate/fimex/internal/domain/structure/inputs"
+	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
 )
 
 type GenerateNamesConsumer struct {
 	service *product_service.ProductService
-	input   *inputs.GenerateNamesPayloadInput
-	log     interfaces.Logger
 }
 
 func NewGenerateProductsNamesConsumer(
-	service *product_service.ProductService, log interfaces.Logger,
+	service *product_service.ProductService,
 ) *GenerateNamesConsumer {
-	return &GenerateNamesConsumer{service, nil, log}
+	return &GenerateNamesConsumer{service}
 }
 
-func (r *GenerateNamesConsumer) Handle() {
-	r.service.GenerateNames(r.input)
-}
+func (r *GenerateNamesConsumer) Handle(result []byte) error {
+	var input = new(catalog_dto.GenerateNamesInputDto)
+	if err := json.Unmarshal(result, &input); err != nil {
+		return err
+	}
 
-func (r *GenerateNamesConsumer) ToStruct(result []byte) {
-	err := json.Unmarshal(result, &r.input)
-	r.log.PanicOnErr(err, "Unmarshal failed")
+	r.service.GenerateNames(input)
+
+	return nil
 }
