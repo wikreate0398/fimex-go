@@ -53,6 +53,14 @@ func (dbm *DbAdapter) Select(entity interface{}, query string, args ...interface
 	}
 }
 
+func (dbm *DbAdapter) Query(query string, args ...any) *sql.Rows {
+	rows, err := dbm.db.Query(query, args...)
+	if err != nil {
+		dbm.logger.Panic(err, "Failed select query", map[string]any{"query": strings.ReplaceAll(query, "\\n", " "), "args": args})
+	}
+	return rows
+}
+
 func (dbm *DbAdapter) BatchUpdate(table string, identifier string, arg interface{}) sql.Result {
 	query, err := NewBatchUpdate(table, identifier, arg).query()
 	if err != nil {

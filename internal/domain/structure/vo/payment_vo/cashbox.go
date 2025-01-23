@@ -1,4 +1,4 @@
-package cashbox
+package payment_vo
 
 import "github.com/pkg/errors"
 
@@ -11,6 +11,13 @@ const (
 	PurchaseLimit Cashbox = "purchase_limit"
 )
 
+var CashboxFields = map[Cashbox]string{
+	Deposit:       "deposit",
+	Balance:       "balance",
+	Penalty:       "penalty_balance",
+	PurchaseLimit: "purchase_limit",
+}
+
 func (t Cashbox) IsValid() bool {
 	switch t {
 	case Deposit, Balance, Penalty, PurchaseLimit:
@@ -18,6 +25,10 @@ func (t Cashbox) IsValid() bool {
 	default:
 		return false
 	}
+}
+
+func (t Cashbox) GetDBField() string {
+	return CashboxFields[t]
 }
 
 func GetCashboxes() []Cashbox {

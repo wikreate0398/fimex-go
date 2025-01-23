@@ -31,7 +31,7 @@ func Make(cfg *config.Config, log *logger.LoggerManager) {
 	}, log)
 
 	repo := repositories.NewRepositories(dbManager)
-	serv := domain_serivces.NewServices(repo)
+	serv := domain_serivces.NewServices(repo, log)
 
 	app := NewApplication(&app_dto.AppDeps{
 		Repository: repo,

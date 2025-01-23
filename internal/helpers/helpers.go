@@ -1,7 +1,9 @@
 package helpers
 
 import (
+	"fmt"
 	"reflect"
+	"time"
 )
 
 func ToString(v interface{}) string {
@@ -18,4 +20,10 @@ func IsString(v interface{}) bool {
 
 func IsStruct(v interface{}) bool {
 	return reflect.TypeOf(v).Kind() == reflect.Struct
+}
+
+func ExecTime(clbk func()) {
+	var start = time.Now()
+	clbk()
+	fmt.Println(time.Since(start))
 }

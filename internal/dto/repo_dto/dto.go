@@ -1,9 +1,9 @@
 package repo_dto
 
 import (
-	"wikreate/fimex/pkg/database"
+	"wikreate/fimex/internal/domain/interfaces"
 )
 
 type Deps struct {
-	DbManager *database.DbAdapter
+	DbManager interfaces.DbManager
 }

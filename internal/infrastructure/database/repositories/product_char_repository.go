@@ -3,21 +3,20 @@ package repositories
 import (
 	"fmt"
 	"strings"
+	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
-	"wikreate/fimex/internal/dto/repo_dto"
 )
 
 type ProductCharRepositoryImpl struct {
-	deps *repo_dto.Deps
+	dbManager interfaces.DbManager
 }
 
-func NewProductCharRepository(deps *repo_dto.Deps) *ProductCharRepositoryImpl {
-	return &ProductCharRepositoryImpl{deps}
+func NewProductCharRepository(db interfaces.DbManager) *ProductCharRepositoryImpl {
+	return &ProductCharRepositoryImpl{dbManager: db}
 }
 
 func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.ProductCharQueryDto {
 	var productChars []catalog_dto.ProductCharQueryDto
-
 	query := fmt.Sprintf(`
 			select id_product,name,use_product_name,add_emodji,cgc.position 
 			from product_chars as pc
@@ -28,7 +27,7 @@ func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.P
 			and chars.deleted_at is null  
 		`, strings.Join(ids, ","))
 
-	p.deps.DbManager.Select(&productChars, query)
+	p.dbManager.Select(&productChars, query)
 
 	return productChars
 }

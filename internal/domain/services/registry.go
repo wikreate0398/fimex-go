@@ -1,6 +1,7 @@
 package services
 
 import (
+	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/services/catalog/product_service"
 	"wikreate/fimex/internal/domain/services/payment_history_service"
 	"wikreate/fimex/internal/infrastructure/database/repositories"
@@ -11,7 +12,7 @@ type Services struct {
 	PaymentHistoryService *payment_history_service.PaymentHistoryService
 }
 
-func NewServices(repository *repositories.Repositories) *Services {
+func NewServices(repository *repositories.Repositories, logger interfaces.Logger) *Services {
 	return &Services{
 		ProductService: product_service.NewProductService(&product_service.Deps{
 			ProductRepository:     repository.ProductRepo,
@@ -19,7 +20,9 @@ func NewServices(repository *repositories.Repositories) *Services {
 		}),
 
 		PaymentHistoryService: payment_history_service.NewPaymentHistoryService(&payment_history_service.Deps{
-			UserRepo: repository.UserRepo,
+			UserRepo:           repository.UserRepo,
+			PaymentHistoryRepo: repository.PaymentHistoryRepo,
+			Logger:             logger,
 		}),
 	}
 }

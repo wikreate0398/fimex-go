@@ -2,17 +2,17 @@ package product_repository
 
 import (
 	"fmt"
+	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
-	"wikreate/fimex/internal/dto/repo_dto"
 	"wikreate/fimex/internal/helpers"
 )
 
 type ProductRepositoryImpl struct {
-	deps *repo_dto.Deps
+	dbManager interfaces.DbManager
 }
 
-func NewProductRepository(deps *repo_dto.Deps) *ProductRepositoryImpl {
-	return &ProductRepositoryImpl{deps}
+func NewProductRepository(db interfaces.DbManager) *ProductRepositoryImpl {
+	return &ProductRepositoryImpl{dbManager: db}
 }
 
 func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.GenerateNamesInputDto, limit int, offset int) []string {
@@ -23,7 +23,7 @@ func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.Gener
 
 	var query = fmt.Sprintf("select id from products %s order by id asc LIMIT ? OFFSET ?", helpers.PrependStr(cond, "where"))
 
-	p.deps.DbManager.Select(&ids, query, args...)
+	p.dbManager.Select(&ids, query, args...)
 
 	return ids
 }
@@ -34,7 +34,7 @@ func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *catalog_dto.G
 	var total int
 	var query = fmt.Sprintf("select count(*) from products %s", helpers.PrependStr(cond, "where"))
 
-	p.deps.DbManager.Get(&total, query, args...)
+	p.dbManager.Get(&total, query, args...)
 	return total
 }
 
@@ -42,7 +42,7 @@ func (p ProductRepositoryImpl) CountTotal() int {
 	var total int
 	var query = "select count(*) from products"
 
-	p.deps.DbManager.Get(&total, query)
+	p.dbManager.Get(&total, query)
 	return total
 }
 
@@ -77,14 +77,14 @@ func (p ProductRepositoryImpl) GetForSort() []catalog_dto.ProductSortQueryDto {
 		WHERE products.deleted_at IS NULL`
 
 	var dto []catalog_dto.ProductSortQueryDto
-	p.deps.DbManager.Select(&dto, query)
+	p.dbManager.Select(&dto, query)
 	return dto
 }
 
 func (p ProductRepositoryImpl) UpdateNames(arg interface{}, identifier string) {
-	p.deps.DbManager.BatchUpdate("products", identifier, arg)
+	p.dbManager.BatchUpdate("products", identifier, arg)
 }
 
 func (p ProductRepositoryImpl) UpdatePosition(arg interface{}, identifier string) {
-	p.deps.DbManager.BatchUpdate("products", identifier, arg)
+	p.dbManager.BatchUpdate("products", identifier, arg)
 }
