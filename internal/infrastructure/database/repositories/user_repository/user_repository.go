@@ -30,14 +30,15 @@ func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbo
 
 	var cashboxCond string
 	if len(cashbox) > 0 {
-		cashboxCond = "and cashbox = ?"
+		cashboxCond = "and cashbox=?"
 		args = append(args, cashbox.String())
 	}
 
 	var query = fmt.Sprintf(`
 		select id,deposit,ballance,penalty_ballance
 		from users
-		where %s exists(select * from payment_history where id_user = id and deleted_at is null %s)
+		where %s exists(select * from payment_history as ph where id_user = users.id and ph.deleted_at is null %s)
+		and deleted_at is null
 	`, userCond, cashboxCond)
 
 	repo.dbManager.Select(&input, query, args...)

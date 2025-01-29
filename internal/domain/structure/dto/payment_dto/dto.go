@@ -7,7 +7,16 @@ type RecalcBallanceInputDto struct {
 	Cashbox payment_vo.Cashbox `json:"cashbox"`
 }
 
+type UserPaymentHistoryQueryDto struct {
+	ID       int     `db:"id"`
+	IdUser   int     `db:"id_user"`
+	Increase string  `db:"increase"`
+	Ballance float64 `db:"ballance2"`
+	Sum      float64 `db:"sum"`
+	Date     string  `db:"date"`
+}
+
 type PaymentHistoryBallanceStoreDto struct {
 	ID       int     `db:"id"`
-	Ballance float64 `db:"ballance"`
+	Ballance float64 `db:"ballance2"`
 }

@@ -1,6 +1,9 @@
 package payment_history_entity
 
-import "wikreate/fimex/internal/domain/structure/vo/payment_vo"
+import (
+	"wikreate/fimex/internal/domain/structure/dto/payment_dto"
+	"wikreate/fimex/internal/domain/structure/vo/payment_vo"
+)
 
 type PaymentHistory struct {
 	id       int
@@ -11,32 +14,15 @@ type PaymentHistory struct {
 	date     string
 }
 
-func NewPaymentHistory() *PaymentHistory {
-	return &PaymentHistory{}
-}
-
-func (p *PaymentHistory) SetID(id int) {
-	p.id = id
-}
-
-func (p *PaymentHistory) SetIdUser(idUser int) {
-	p.idUser = idUser
-}
-
-func (p *PaymentHistory) SetIncrease(increase string) {
-	p.increase = payment_vo.Increase(increase)
-}
-
-func (p *PaymentHistory) SetSum(sum float64) {
-	p.sum = sum
-}
-
-func (p *PaymentHistory) SetBallance(ballance float64) {
-	p.ballance = ballance
-}
-
-func (p *PaymentHistory) SetDate(date string) {
-	p.date = date
+func NewPaymentHistory(dto payment_dto.UserPaymentHistoryQueryDto) PaymentHistory {
+	return PaymentHistory{
+		id:       dto.ID,
+		idUser:   dto.IdUser,
+		increase: payment_vo.Increase(dto.Increase),
+		sum:      dto.Sum,
+		ballance: dto.Ballance,
+		date:     dto.Date,
+	}
 }
 
 func (p *PaymentHistory) ID() int {

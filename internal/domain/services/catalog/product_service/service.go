@@ -169,14 +169,14 @@ func (s ProductService) Sort() {
 			)
 		})
 
-		for _, product := range data {
-			var key = fmt.Sprintf("%v.%v.%v", product.IdBrand, product.IdCategory, product.IdSubcategory)
+		for _, prod := range data {
+			var key = fmt.Sprintf("%v.%v.%v", prod.IdBrand, prod.IdCategory, prod.IdSubcategory)
 
 			if _, exists := grouped[key]; !exists {
 				orderedKeys = append(orderedKeys, key)
 			}
 
-			grouped[key] = append(grouped[key], product)
+			grouped[key] = append(grouped[key], prod)
 		}
 
 		var num = 1

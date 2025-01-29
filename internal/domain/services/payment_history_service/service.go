@@ -49,8 +49,7 @@ func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallan
 		for _, user := range users {
 			pool.AddJob(func(user user_dto.UserQueryDto, cashboxType payment_vo.Cashbox) func() {
 				return func() {
-					var userEntity = user_entity.NewUser()
-					userEntity.FillFromDto(user)
+					var userEntity = user_entity.NewUser(user)
 
 					history, err := s.deps.PaymentHistoryRepo.SelectUserHistory(userEntity.ID(), cashboxType)
 
@@ -61,16 +60,17 @@ func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallan
 						)
 					}
 
-					if len(*history) > 0 {
+					if len(history) <= 0 {
 						return
 					}
 
 					userEntity.SetPaymentHistory(history)
 
 					var initialBallance = userEntity.CountInitialBallance(cashboxType)
-					inserts := make([]payment_dto.PaymentHistoryBallanceStoreDto, 0, len(*history))
 
-					for _, item := range *userEntity.PaymentsHistory() {
+					inserts := make([]payment_dto.PaymentHistoryBallanceStoreDto, 0, len(history))
+
+					for _, item := range userEntity.PaymentsHistory() {
 						if item.Increase().IsUp() {
 							initialBallance += item.Sum()
 						} else {

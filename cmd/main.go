@@ -12,6 +12,7 @@ func main() {
 	log, err := logger.NewLogger()
 
 	if err != nil {
+
 		fmt.Println("Error initializing logger:", err)
 		os.Exit(1)
 	}

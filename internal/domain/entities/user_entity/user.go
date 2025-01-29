@@ -13,22 +13,20 @@ type User struct {
 	penalty_ballance  float64
 	purchase_ballance float64
 
-	paymentsHistory *[]payment_history_entity.PaymentHistory
+	paymentsHistory []payment_history_entity.PaymentHistory
 }
 
-func NewUser() *User {
-	return &User{}
+func NewUser(dto user_dto.UserQueryDto) *User {
+	return &User{
+		id:                dto.ID,
+		deposit:           dto.Deposit,
+		ballance:          dto.Ballance,
+		penalty_ballance:  dto.PenaltyBallance,
+		purchase_ballance: dto.PurchaseBallance,
+	}
 }
 
-func (u *User) FillFromDto(dto user_dto.UserQueryDto) {
-	u.id = dto.ID
-	u.deposit = dto.Deposit
-	u.ballance = dto.Ballance
-	u.penalty_ballance = dto.PenaltyBallance
-	u.purchase_ballance = dto.PurchaseBallance
-}
-
-func (u *User) SetPaymentHistory(paymentsHistory *[]payment_history_entity.PaymentHistory) {
+func (u *User) SetPaymentHistory(paymentsHistory []payment_history_entity.PaymentHistory) {
 	u.paymentsHistory = paymentsHistory
 }
 
@@ -36,7 +34,7 @@ func (u *User) ID() int {
 	return u.id
 }
 
-func (u *User) PaymentsHistory() *[]payment_history_entity.PaymentHistory {
+func (u *User) PaymentsHistory() []payment_history_entity.PaymentHistory {
 	return u.paymentsHistory
 }
 
@@ -57,7 +55,7 @@ func (u *User) BallanceValueByCashbox(val payment_vo.Cashbox) float64 {
 
 func (u *User) CountInitialBallance(cashbox payment_vo.Cashbox) float64 {
 	var currentBallance = u.BallanceValueByCashbox(cashbox)
-	for _, item := range *u.PaymentsHistory() {
+	for _, item := range u.PaymentsHistory() {
 		var sum = item.Sum()
 		if item.Increase().IsUp() {
 			currentBallance -= sum

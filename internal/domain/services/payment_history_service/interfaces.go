@@ -11,6 +11,6 @@ type UserRepository interface {
 }
 
 type PaymentHistoryRepository interface {
-	SelectUserHistory(id_user int, cashbox payment_vo.Cashbox) (*[]payment_history_entity.PaymentHistory, error)
+	SelectUserHistory(id_user int, cashbox payment_vo.Cashbox) ([]payment_history_entity.PaymentHistory, error)
 	BatchUpdate(arg interface{}, identifier string)
 }
