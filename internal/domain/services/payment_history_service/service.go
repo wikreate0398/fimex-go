@@ -94,5 +94,5 @@ func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallan
 	pool.Stop()
 	pool.Wait()
 
-	fmt.Println(time.Since(start))
+	fmt.Println("payment history", time.Since(start))
 }

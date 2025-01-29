@@ -14,7 +14,7 @@ type PaymentHistory struct {
 	date     string
 }
 
-func NewPaymentHistory(dto payment_dto.UserPaymentHistoryQueryDto) PaymentHistory {
+func NewPaymentHistory(dto payment_dto.PaymentHistoryQueryDto) PaymentHistory {
 	return PaymentHistory{
 		id:       dto.ID,
 		idUser:   dto.IdUser,

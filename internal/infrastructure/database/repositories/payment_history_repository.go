@@ -43,7 +43,7 @@ func (repo PaymentHistoryRepositoryImpl) SelectUserHistory(
 			return nil, err
 		}
 
-		dto := payment_dto.UserPaymentHistoryQueryDto{
+		dto := payment_dto.PaymentHistoryQueryDto{
 			ID:       id,
 			IdUser:   idUser,
 			Increase: increase,
@@ -52,9 +52,7 @@ func (repo PaymentHistoryRepositoryImpl) SelectUserHistory(
 			Date:     date,
 		}
 
-		entity := payment_history_entity.NewPaymentHistory(dto)
-
-		history = append(history, entity)
+		history = append(history, payment_history_entity.NewPaymentHistory(dto))
 	}
 
 	return history, nil
