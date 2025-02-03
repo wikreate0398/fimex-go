@@ -14,12 +14,12 @@ type Services struct {
 
 func NewServices(repository *repositories.Repositories, logger interfaces.Logger) *Services {
 	return &Services{
-		ProductService: product_service.NewProductService(&product_service.Deps{
+		ProductService: product_service.NewProductService(product_service.Deps{
 			ProductRepository:     repository.ProductRepo,
 			ProductCharRepository: repository.ProductCharRepo,
 		}),
 
-		PaymentHistoryService: payment_history_service.NewPaymentHistoryService(&payment_history_service.Deps{
+		PaymentHistoryService: payment_history_service.NewPaymentHistoryService(payment_history_service.Deps{
 			UserRepo:           repository.UserRepo,
 			PaymentHistoryRepo: repository.PaymentHistoryRepo,
 			Logger:             logger,

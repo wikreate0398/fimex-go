@@ -23,10 +23,10 @@ type Deps struct {
 }
 
 type ProductService struct {
-	deps *Deps
+	deps Deps
 }
 
-func NewProductService(deps *Deps) *ProductService {
+func NewProductService(deps Deps) *ProductService {
 	return &ProductService{deps: deps}
 }
 

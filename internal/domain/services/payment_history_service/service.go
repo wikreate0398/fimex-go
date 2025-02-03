@@ -19,10 +19,10 @@ type Deps struct {
 }
 
 type PaymentHistoryService struct {
-	deps *Deps
+	deps Deps
 }
 
-func NewPaymentHistoryService(deps *Deps) *PaymentHistoryService {
+func NewPaymentHistoryService(deps Deps) *PaymentHistoryService {
 	return &PaymentHistoryService{deps: deps}
 }
 

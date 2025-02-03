@@ -16,5 +16,5 @@ type AppDeps struct {
 }
 
 type Application struct {
-	Deps *AppDeps
+	Deps AppDeps
 }

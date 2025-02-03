@@ -14,7 +14,7 @@ import (
 	"wikreate/fimex/pkg/logger"
 )
 
-func NewApplication(deps *app_dto.AppDeps) *app_dto.Application {
+func NewApplication(deps app_dto.AppDeps) *app_dto.Application {
 	return &app_dto.Application{Deps: deps}
 }
 
@@ -33,7 +33,7 @@ func Make(cfg *config.Config, log *logger.LoggerManager) {
 	repo := repositories.NewRepositories(dbManager)
 	serv := domain_serivces.NewServices(repo, log)
 
-	app := NewApplication(&app_dto.AppDeps{
+	app := NewApplication(app_dto.AppDeps{
 		Repository: repo,
 		Services:   serv,
 		Config:     cfg,
