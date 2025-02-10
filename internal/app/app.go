@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"go.uber.org/fx"
 	"wikreate/fimex/internal/config"
 	domain_serivces "wikreate/fimex/internal/domain/services"
 	"wikreate/fimex/internal/dto/app_dto"
@@ -19,6 +21,14 @@ func NewApplication(deps app_dto.AppDeps) *app_dto.Application {
 }
 
 func Make(cfg *config.Config, log *logger.LoggerManager) {
+	fx.New(
+		fx.Provide(logger.NewLogger),
+		fx.Invoke(func(lc fx.Lifecycle) {
+			fmt.Println("hello")
+		}),
+	).Run()
+
+	return
 	ctx := context.Background()
 
 	dbConf := cfg.Databases.MySql
