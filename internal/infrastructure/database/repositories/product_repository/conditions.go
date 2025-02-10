@@ -7,7 +7,7 @@ import (
 )
 
 func whereIdGroup(id_group int) (string, int) {
-	return "exists(select * from categories where id = id_subcategory and id_group = ?)", id_group
+	return "exists(select * from categories where categories.id = id_subcategory and id_group = ?)", id_group
 }
 
 func whereCharValues(ids []int) (string, string) {
@@ -32,6 +32,7 @@ func condGenerateNamesPayload(payload *catalog_dto.GenerateNamesInputDto) (strin
 
 	if len(payload.IdsVal) > 0 {
 		query, param := whereCharValues(payload.IdsVal)
+
 		where = append(where, query)
 		args = append(args, param)
 	}

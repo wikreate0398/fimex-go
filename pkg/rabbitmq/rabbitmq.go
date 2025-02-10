@@ -88,10 +88,10 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 		go func(queueName string, items map[string]RegisterDto) {
 			defer wg.Done()
 
-			defer func() {
-				if r := recover(); r != nil {
-				}
-			}()
+			//defer func() {
+			//	if r := recover(); r != nil {
+			//	}
+			//}()
 
 			msgs, err := r.ch.Consume(
 				queueName, "", true, false, false, false, nil,
@@ -102,7 +102,7 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 				select {
 				case msg := <-msgs:
 					if result, exists := items[msg.RoutingKey]; exists {
-						fmt.Println(queueName, msg.RoutingKey, msg.Exchange, string(msg.Body))
+						//fmt.Println(queueName, msg.RoutingKey, msg.Exchange, string(msg.Body))
 						if err := result.Resolver.Handle(msg.Body); err != nil {
 							r.log.Error(err)
 						}

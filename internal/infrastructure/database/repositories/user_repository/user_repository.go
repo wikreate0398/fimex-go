@@ -18,13 +18,11 @@ func NewUserRepository(db interfaces.DbManager) *UserRepositoryImpl {
 func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbox payment_vo.Cashbox) []user_dto.UserQueryDto {
 	var input []user_dto.UserQueryDto
 
-	var where []string
 	args := []interface{}{}
 
 	var userCond string
 	if id_user > 0 {
 		userCond = "id=? and"
-		where = append(where, "id=?")
 		args = append(args, id_user)
 	}
 

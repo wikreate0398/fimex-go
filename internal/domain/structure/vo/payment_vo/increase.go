@@ -7,8 +7,5 @@ func (val Increase) toStr() string {
 }
 
 func (val Increase) IsUp() bool {
-	if string(val) == "up" {
-		return true
-	}
-	return false
+	return string(val) == "up"
 }

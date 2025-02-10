@@ -17,6 +17,7 @@ func NewServices(repository *repositories.Repositories, logger interfaces.Logger
 		ProductService: product_service.NewProductService(product_service.Deps{
 			ProductRepository:     repository.ProductRepo,
 			ProductCharRepository: repository.ProductCharRepo,
+			Logger:                logger,
 		}),
 
 		PaymentHistoryService: payment_history_service.NewPaymentHistoryService(payment_history_service.Deps{

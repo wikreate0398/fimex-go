@@ -3,4 +3,4 @@
 .github/.stage-secrets
 .github/.prod-secrets
 /docker
-.bin
+.bin/golangci-lint

@@ -3,7 +3,6 @@ package payment_history_service
 import (
 	"fmt"
 	"runtime"
-	"time"
 	"wikreate/fimex/internal/domain/entities/user_entity"
 	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/structure/dto/payment_dto"
@@ -27,7 +26,7 @@ func NewPaymentHistoryService(deps Deps) *PaymentHistoryService {
 }
 
 func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallanceInputDto) {
-	var start = time.Now()
+	//var start = time.Now()
 
 	var cashboxes []payment_vo.Cashbox
 	for _, val := range payment_vo.GetCashboxes() {
@@ -94,5 +93,5 @@ func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallan
 	pool.Stop()
 	pool.Wait()
 
-	fmt.Println("payment history", time.Since(start))
+	//fmt.Println("payment history", time.Since(start))
 }
