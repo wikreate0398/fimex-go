@@ -74,16 +74,11 @@ jobs:
           eval $(ssh-agent -s)
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
 
-#         Копируем бинарник в корень
           scp -f -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
 
           ssh ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} "
-#           удаляем старый
             rm -f /var/${DEV_DEPLOY_PATH}/.bin/dev &&
-#           перемещаем новый
             mv /var/${DEV_DEPLOY_PATH}/dev /var/${DEV_DEPLOY_PATH}/.bin/ &&
-#           удаляем временный
-            rm -f /var/${DEV_DEPLOY_PATH}/dev &&
-          "
+            rm -f /var/${DEV_DEPLOY_PATH}/dev"
 
           scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
