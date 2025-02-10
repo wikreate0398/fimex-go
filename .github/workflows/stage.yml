@@ -76,7 +76,7 @@ jobs:
 
           scp -f -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
 
-          ssh ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} "
             rm -f /var/${DEV_DEPLOY_PATH}/.bin/dev &&
             mv /var/${DEV_DEPLOY_PATH}/dev /var/${DEV_DEPLOY_PATH}/.bin/ &&
             rm -f /var/${DEV_DEPLOY_PATH}/dev"
