@@ -76,7 +76,7 @@ jobs:
 
 #         Копируем бинарник в корень
           scp -f -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
-          
+
           ssh ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} "
 #           удаляем старый
             rm -f /var/${DEV_DEPLOY_PATH}/.bin/dev &&
@@ -85,6 +85,5 @@ jobs:
 #           удаляем временный
             rm -f /var/${DEV_DEPLOY_PATH}/dev &&
           "
-          
-          scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
 
+          scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
