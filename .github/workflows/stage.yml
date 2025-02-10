@@ -77,10 +77,11 @@ jobs:
           scp -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
 
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} " 
-            rm -f /var/${DEV_DEPLOY_PATH}/.bin/dev &&
-            mv /var/${DEV_DEPLOY_PATH}/dev /var/${DEV_DEPLOY_PATH}/.bin/ &&
-            rm -f /var/${DEV_DEPLOY_PATH}/dev &&
-            sudo /usr/bin/systemctl restart fimex-go.service
+            sudo /usr/bin/systemctl stop fimex-go.service &&
+            rm -f /var/${{secrets.DEV_DEPLOY_PATH}}/.bin/dev &&
+            mv /var/${{secrets.DEV_DEPLOY_PATH}}/dev /var/${{secrets.DEV_DEPLOY_PATH}}/.bin/ &&
+            rm -f /var/${{secrets.DEV_DEPLOY_PATH}}/dev &&
+            sudo /usr/bin/systemctl start fimex-go.service
           "
 
           scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
