@@ -2,7 +2,6 @@ package messagebus
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"wikreate/fimex/internal/dto/app_dto"
 	"wikreate/fimex/internal/transport/messagebus/consumers"
@@ -15,7 +14,7 @@ func Init(application *app_dto.Application) func(lf *lifecycle.Lifecycle) {
 
 		lf.Append(lifecycle.AppendLifecycle{
 			OnStart: func(ctx context.Context) any {
-				fmt.Println("Message bus Init")
+				application.Deps.Logger.Info("Message bus Init")
 
 				queues := consumers.NewHandlers(application)
 

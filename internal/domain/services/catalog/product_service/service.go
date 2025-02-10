@@ -31,7 +31,7 @@ func NewProductService(deps Deps) *ProductService {
 }
 
 func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
-	start := time.Now()
+	//start := time.Now()
 
 	var (
 		total      = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
@@ -92,11 +92,11 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 
 	pool.Stop()
 
-	fmt.Println("GenerateNames", time.Since(start))
+	//fmt.Println("GenerateNames", time.Since(start))
 }
 
 func (s ProductService) Sort() {
-	start := time.Now()
+	//start := time.Now()
 
 	type job struct {
 		products  []catalog_dto.ProductSortQueryDto
@@ -191,5 +191,5 @@ func (s ProductService) Sort() {
 
 	wg.Wait()
 
-	fmt.Println("sort", time.Since(start))
+	//fmt.Println("sort", time.Since(start))
 }

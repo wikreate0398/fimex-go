@@ -102,7 +102,7 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 				select {
 				case msg := <-msgs:
 					if result, exists := items[msg.RoutingKey]; exists {
-						fmt.Println(queueName, msg.RoutingKey, msg.Exchange, string(msg.Body))
+						//fmt.Println(queueName, msg.RoutingKey, msg.Exchange, string(msg.Body))
 						if err := result.Resolver.Handle(msg.Body); err != nil {
 							r.log.Error(err)
 						}

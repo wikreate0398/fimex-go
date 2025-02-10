@@ -26,7 +26,7 @@ func NewLogger() (*LoggerManager, error) {
 	logger := log.New()
 	logger.SetFormatter(&log.JSONFormatter{})
 	logger.SetReportCaller(true)
-	logger.SetLevel(log.TraceLevel)
+	logger.SetLevel(log.DebugLevel)
 	logger.SetOutput(io.MultiWriter(file, os.Stdout))
 
 	return &LoggerManager{logger: logger}, nil
