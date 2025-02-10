@@ -94,7 +94,7 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 
 	pool.Stop()
 
-	s.deps.Logger.Info("GenerateNames", time.Since(start))
+	s.deps.Logger.Info(fmt.Sprintf("GenerateNames %v", time.Since(start)))
 }
 
 func (s ProductService) Sort() {
@@ -193,5 +193,5 @@ func (s ProductService) Sort() {
 
 	wg.Wait()
 
-	s.deps.Logger.Info("Sort Products", time.Since(start))
+	s.deps.Logger.Info(fmt.Sprintf("Sort Products %v", time.Since(start)))
 }
