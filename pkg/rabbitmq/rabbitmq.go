@@ -88,10 +88,10 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 		go func(queueName string, items map[string]RegisterDto) {
 			defer wg.Done()
 
-			defer func() {
-				if r := recover(); r != nil {
-				}
-			}()
+			//defer func() {
+			//	if r := recover(); r != nil {
+			//	}
+			//}()
 
 			msgs, err := r.ch.Consume(
 				queueName, "", true, false, false, false, nil,
