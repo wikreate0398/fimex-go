@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 	"wikreate/fimex/internal/domain/entities/catalog/product"
+	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
 	"wikreate/fimex/internal/helpers"
 	"wikreate/fimex/pkg/workerpool"
@@ -20,6 +21,7 @@ import (
 type Deps struct {
 	ProductRepository     ProductRepository
 	ProductCharRepository ProductCharRepository
+	Logger                interfaces.Logger
 }
 
 type ProductService struct {
@@ -31,7 +33,7 @@ func NewProductService(deps Deps) *ProductService {
 }
 
 func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
-	//start := time.Now()
+	start := time.Now()
 
 	var (
 		total      = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
@@ -92,11 +94,11 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 
 	pool.Stop()
 
-	//fmt.Println("GenerateNames", time.Since(start))
+	s.deps.Logger.Info("GenerateNames", time.Since(start))
 }
 
 func (s ProductService) Sort() {
-	//start := time.Now()
+	start := time.Now()
 
 	type job struct {
 		products  []catalog_dto.ProductSortQueryDto
@@ -191,5 +193,5 @@ func (s ProductService) Sort() {
 
 	wg.Wait()
 
-	//fmt.Println("sort", time.Since(start))
+	s.deps.Logger.Info("Sort Products", time.Since(start))
 }
