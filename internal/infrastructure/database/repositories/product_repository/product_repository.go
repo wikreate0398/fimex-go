@@ -35,6 +35,7 @@ func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *catalog_dto.G
 	var query = fmt.Sprintf("select count(*) from products %s", helpers.PrependStr(cond, "where"))
 
 	p.dbManager.Get(&total, query, args...)
+
 	return total
 }
 
