@@ -74,12 +74,13 @@ jobs:
           eval $(ssh-agent -s)
           echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
 
-          scp -f -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
+          scp -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
 
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} <<EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} " 
             rm -f /var/${DEV_DEPLOY_PATH}/.bin/dev &&
             mv /var/${DEV_DEPLOY_PATH}/dev /var/${DEV_DEPLOY_PATH}/.bin/ &&
-            rm -f /var/${DEV_DEPLOY_PATH}/dev
-          EOF
+            rm -f /var/${DEV_DEPLOY_PATH}/dev &&
+            sudo /usr/bin/systemctl restart fimex-go.service
+          "
 
           scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
