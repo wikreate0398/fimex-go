@@ -1,4 +1,4 @@
-name: Deploy Go Application
+name: Deploy Prod Go Application
 
 on:
   push:
