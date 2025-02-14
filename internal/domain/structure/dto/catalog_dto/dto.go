@@ -39,6 +39,6 @@ type ProductSortQueryDto struct {
 
 type ProductSortStoreDto struct {
 	ID        int    `db:"id"`
-	Position  int    `db:"page_up"`
+	Position  int    `db:"page_up2"`
 	UpdatedAt string `db:"updated_at"`
 }
