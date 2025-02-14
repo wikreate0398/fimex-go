@@ -8,6 +8,7 @@ import (
 	"wikreate/fimex/pkg/logger"
 )
 
+// m
 func main() {
 	logManger, err := logger.NewLogger()
 
