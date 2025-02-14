@@ -33,7 +33,7 @@ func NewProductService(deps Deps) *ProductService {
 }
 
 func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
-	//start := time.Now()
+	///start := time.Now()
 
 	var (
 		total      = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
