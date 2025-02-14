@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
+      - name: Clean Go Module Cache
+        run: go clean -modcache
       - name: Install dependencies
         run: go mod tidy
       - name: golangci-lint
