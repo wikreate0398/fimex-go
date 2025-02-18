@@ -74,7 +74,7 @@ func (p ProductRepositoryImpl) GetForSort() []catalog_dto.ProductSortQueryDto {
 		JOIN categories AS categories ON categories.id = products.id_category
 		JOIN categories AS subcategory ON subcategory.id = products.id_subcategory
 		JOIN brands ON brands.id = categories.id_brand
-		WHERE products.deleted_at IS NULL 
+		WHERE products.deleted_at IS NULL  
 		order by brand_position, cat_position, subcat_position`
 
 	var dto []catalog_dto.ProductSortQueryDto

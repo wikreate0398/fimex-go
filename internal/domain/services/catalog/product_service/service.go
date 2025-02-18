@@ -169,10 +169,11 @@ func (s ProductService) Sort() {
 		}
 
 		var num = 1
-		for i, key := range orderedKeys {
+		for _, key := range orderedKeys {
 			var products = grouped[key]
+
 			jobs <- job{products: products, iteration: num}
-			num = i * (len(products) + 1)
+			num += len(products)
 		}
 
 		close(jobs)
