@@ -1,7 +1,6 @@
 package product_service
 
 import (
-	"cmp"
 	"fmt"
 	"math"
 	"runtime"
@@ -125,23 +124,22 @@ func (s ProductService) Sort() {
 				var insert []catalog_dto.ProductSortStoreDto
 
 				sort.Slice(subcatProducts, func(a, b int) bool {
-					var aProd = subcatProducts[a]
-					var bProd = subcatProducts[b]
+					var aPup = strings.Split(subcatProducts[a].Position.String, ",")
+					var bPup = strings.Split(subcatProducts[b].Position.String, ",")
 
-					var aPup = strings.Split(aProd.Position.String, ",")
-					var bPup = strings.Split(bProd.Position.String, ",")
+					for k := 0; k < len(aPup) && k < len(bPup); k++ {
+						aVal, _ := strconv.Atoi(aPup[k])
+						bVal, _ := strconv.Atoi(bPup[k])
 
-					for key := 0; key < len(aPup) && key < len(bPup); key++ {
-						aVal, _ := strconv.Atoi(aPup[key])
-						bVal, _ := strconv.Atoi(bPup[key])
-
+						// Преобразуем строку в число для сравнения
 						if aVal != bVal {
 							return aVal < bVal
 						}
 					}
-
-					return len(aPup) < len(bPup)
+					return false
 				})
+
+				helpers.PrintStructToJson(subcatProducts[0:5])
 
 				for _, prod := range subcatProducts {
 					insert = append(insert, catalog_dto.ProductSortStoreDto{
@@ -162,14 +160,6 @@ func (s ProductService) Sort() {
 		var orderedKeys []string
 
 		var data = s.deps.ProductRepository.GetForSort()
-
-		slices.SortFunc(data, func(a, b catalog_dto.ProductSortQueryDto) int {
-			return cmp.Or(
-				cmp.Compare(a.BrandPosition, b.BrandPosition),
-				cmp.Compare(a.CatPosition, b.CatPosition),
-				cmp.Compare(a.SubCatPosition, b.SubCatPosition),
-			)
-		})
 
 		for _, prod := range data {
 			var key = fmt.Sprintf("%v.%v.%v", prod.IdBrand, prod.IdCategory, prod.IdSubcategory)
