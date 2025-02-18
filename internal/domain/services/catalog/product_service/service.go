@@ -131,15 +131,12 @@ func (s ProductService) Sort() {
 						aVal, _ := strconv.Atoi(aPup[k])
 						bVal, _ := strconv.Atoi(bPup[k])
 
-						// Преобразуем строку в число для сравнения
 						if aVal != bVal {
 							return aVal < bVal
 						}
 					}
 					return false
 				})
-
-				helpers.PrintStructToJson(subcatProducts[0:5])
 
 				for _, prod := range subcatProducts {
 					insert = append(insert, catalog_dto.ProductSortStoreDto{
