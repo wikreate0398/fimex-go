@@ -30,10 +30,9 @@ type ProductSortQueryDto struct {
 	IdCategory     int            `db:"id_category"`
 	IdBrand        int            `db:"id_brand"`
 	IdGroup        int            `db:"id_group"`
-	BrandPosition  string         `db:"brand_position"`
-	CatPosition    string         `db:"cat_position"`
-	SubCatPosition string         `db:"subcat_position"`
-	PageUp         int            `db:"page_up"`
+	BrandPosition  int            `db:"brand_position"`
+	CatPosition    int            `db:"cat_position"`
+	SubCatPosition int            `db:"subcat_position"`
 	Position       sql.NullString `db:"position"`
 }
 
