@@ -16,39 +16,74 @@ type LogInput struct {
 
 type LoggerManager struct {
 	logger *log.Logger
+	fields LogFields
 }
 
-func (l LoggerManager) Info(args ...interface{}) {
+func (l *LoggerManager) WithFields(args map[string]interface{}) *LoggerManager {
+	var fields = make(LogFields)
+
+	for k, v := range args {
+		fields[k] = v
+	}
+
+	l.fields = fields
+
+	return l
+}
+
+func (l *LoggerManager) Info(args ...interface{}) {
 	info(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) Debug(args ...interface{}) {
+func (l *LoggerManager) Debug(args ...interface{}) {
 	debug(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) Error(args ...interface{}) {
+func (l *LoggerManager) Debugf(msg string, args ...interface{}) {
+	debugf(l.logger, msg, prepare(args...))
+}
+
+func (l *LoggerManager) Error(args ...interface{}) {
 	err(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) Warn(args ...interface{}) {
+func (l *LoggerManager) Errorf(msg string, args ...interface{}) {
+	l.fillFields().Errorf(msg, args...)
+}
+
+func (l *LoggerManager) fillFields() *log.Entry {
+	var instance = log.NewEntry(l.logger)
+
+	if len(l.fields) > 0 {
+		instance = instance.WithFields(log.Fields(l.fields))
+	}
+
+	fmt.Println(len(l.fields), "$$$")
+
+	l.fields = nil
+
+	return instance
+}
+
+func (l *LoggerManager) Warn(args ...interface{}) {
 	warn(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) Fatal(args ...interface{}) {
+func (l *LoggerManager) Fatal(args ...interface{}) {
 	fatal(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) Panic(args ...interface{}) {
+func (l *LoggerManager) Panic(args ...interface{}) {
 	ppanic(l.logger, prepare(args...))
 }
 
-func (l LoggerManager) PanicOnErr(err error, args ...interface{}) {
+func (l *LoggerManager) PanicOnErr(err error, args ...interface{}) {
 	if err != nil {
 		l.Panic(append(args, err)...)
 	}
 }
 
-func (l LoggerManager) FatalOnErr(err error, args ...interface{}) {
+func (l *LoggerManager) FatalOnErr(err error, args ...interface{}) {
 	if err != nil {
 		l.Fatal(append(args, err)...)
 	}
@@ -67,6 +102,14 @@ func debug(logger *log.Logger, input LogInput) {
 		logger.WithFields(log.Fields(input.Params)).Debug(input.Msg)
 	} else {
 		logger.Debug(input.Msg)
+	}
+}
+
+func debugf(logger *log.Logger, msg string, input LogInput) {
+	if len(input.Params) > 0 {
+		logger.WithFields(log.Fields(input.Params)).Debug(msg)
+	} else {
+		logger.Debugf(msg)
 	}
 }
 
@@ -117,6 +160,10 @@ func prepare(args ...interface{}) LogInput {
 
 		if argString, ok := arg.(string); ok {
 			msgs = append(msgs, argString)
+		}
+
+		if _, ok := fields["stack"]; ok {
+			continue
 		}
 
 		if argErr, ok := arg.(error); ok {
