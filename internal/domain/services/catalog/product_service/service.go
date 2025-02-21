@@ -1,7 +1,6 @@
 package product_service
 
 import (
-	"cmp"
 	"fmt"
 	"math"
 	"runtime"
@@ -33,7 +32,7 @@ func NewProductService(deps Deps) *ProductService {
 }
 
 func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
-	//start := time.Now()
+	///start := time.Now()
 
 	var (
 		total      = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
@@ -125,22 +124,18 @@ func (s ProductService) Sort() {
 				var insert []catalog_dto.ProductSortStoreDto
 
 				sort.Slice(subcatProducts, func(a, b int) bool {
-					var aProd = subcatProducts[a]
-					var bProd = subcatProducts[b]
+					var aPup = strings.Split(subcatProducts[a].Position.String, ",")
+					var bPup = strings.Split(subcatProducts[b].Position.String, ",")
 
-					var aPup = strings.Split(aProd.Position.String, ",")
-					var bPup = strings.Split(bProd.Position.String, ",")
-
-					for key := 0; key < len(aPup) && key < len(bPup); key++ {
-						aVal, _ := strconv.Atoi(aPup[key])
-						bVal, _ := strconv.Atoi(bPup[key])
+					for k := 0; k < len(aPup) && k < len(bPup); k++ {
+						aVal, _ := strconv.Atoi(aPup[k])
+						bVal, _ := strconv.Atoi(bPup[k])
 
 						if aVal != bVal {
 							return aVal < bVal
 						}
 					}
-
-					return len(aPup) < len(bPup)
+					return false
 				})
 
 				for _, prod := range subcatProducts {
@@ -163,14 +158,6 @@ func (s ProductService) Sort() {
 
 		var data = s.deps.ProductRepository.GetForSort()
 
-		slices.SortFunc(data, func(a, b catalog_dto.ProductSortQueryDto) int {
-			return cmp.Or(
-				cmp.Compare(a.BrandPosition, b.BrandPosition),
-				cmp.Compare(a.CatPosition, b.CatPosition),
-				cmp.Compare(a.SubCatPosition, b.SubCatPosition),
-			)
-		})
-
 		for _, prod := range data {
 			var key = fmt.Sprintf("%v.%v.%v", prod.IdBrand, prod.IdCategory, prod.IdSubcategory)
 
@@ -182,10 +169,11 @@ func (s ProductService) Sort() {
 		}
 
 		var num = 1
-		for i, key := range orderedKeys {
+		for _, key := range orderedKeys {
 			var products = grouped[key]
+
 			jobs <- job{products: products, iteration: num}
-			num = i * (len(products) + 1)
+			num += len(products)
 		}
 
 		close(jobs)

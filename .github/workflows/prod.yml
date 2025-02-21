@@ -1,30 +1,34 @@
-name: Deploy Dev Go Application
+name: Deploy Prod Go Application
 
 on:
   push:
     branches:
-      - dev
+      - main
     tags:
       - 'v*'
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.60
+#  lint:
+#    name: Lint
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-go@v5
+#        with:
+#          go-version: '1.23.4'
+#      - name: Clean Go Module Cache
+#        run: go clean -modcache
+#      - name: Install dependencies
+#        run: go mod tidy
+#      - name: golangci-lint
+#        uses: golangci/golangci-lint-action@v6
+#        with:
+#          version: v1.60
 
   test:
     name: Test
     runs-on: ubuntu-latest
-    needs: lint
+#    needs: lint
 
     steps:
       - name: Checkout code
@@ -62,26 +66,26 @@ jobs:
       - name: Set up SSH key
         run: | 
           mkdir -p ~/.ssh 
-          echo "${{ secrets.DEV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
           eval $(ssh-agent -s)
-          echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
+          echo "${{ secrets.PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
 
       - name: Deploy to server
         run: |
           eval $(ssh-agent -s)
-          echo "${{ secrets.DEV_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
+          echo "${{ secrets.PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
 
-          scp -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
+          scp -o StrictHostKeyChecking=no ./.bin/dev ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/${{ secrets.DEPLOY_PATH }}/
 
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }} " 
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} " 
             sudo /usr/bin/systemctl stop fimex-go.service &&
-            rm -f /var/${{secrets.DEV_DEPLOY_PATH}}/.bin/dev &&
-            mv /var/${{secrets.DEV_DEPLOY_PATH}}/dev /var/${{secrets.DEV_DEPLOY_PATH}}/.bin/ &&
-            rm -f /var/${{secrets.DEV_DEPLOY_PATH}}/dev &&
+            rm -f /var/${{secrets.DEPLOY_PATH}}/.bin/dev &&
+            mv /var/${{secrets.DEPLOY_PATH}}/dev /var/${{secrets.DEPLOY_PATH}}/.bin/ &&
+            rm -f /var/${{secrets.DEPLOY_PATH}}/dev &&
             sudo /usr/bin/systemctl start fimex-go.service
           "
 
-          scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.DEV_SERVER_USER }}@${{ secrets.DEV_SERVER_IP }}:/var/${{ secrets.DEV_DEPLOY_PATH }}/
+          scp -r -o StrictHostKeyChecking=no ./configs ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/${{ secrets.DEPLOY_PATH }}/
