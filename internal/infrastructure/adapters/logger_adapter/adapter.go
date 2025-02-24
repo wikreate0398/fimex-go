@@ -55,16 +55,16 @@ func (l *LoggerAdapter) Errorf(msg string, args ...interface{}) {
 	l.fillFields().Errorf(msg, args)
 }
 
-func (l *LoggerAdapter) fillFields() *logrus.Entry {
-	var instance = logrus.NewEntry(l.logger)
-
-	if len(l.fields) > 0 {
-		instance = instance.WithFields(logrus.Fields(l.fields))
+func (l *LoggerAdapter) OnErrorf(err error, msg string) {
+	if err != nil {
+		l.Errorf(msg, err)
 	}
+}
 
-	l.fields = nil
-
-	return instance
+func (l *LoggerAdapter) OnError(err error, msg string) {
+	if err != nil {
+		l.Error(msg, err)
+	}
 }
 
 func (l *LoggerAdapter) Warn(args ...interface{}) {
@@ -89,4 +89,16 @@ func (l *LoggerAdapter) FatalOnErr(err error, args ...interface{}) {
 	if err != nil {
 		l.Fatal(append(args, err)...)
 	}
+}
+
+func (l *LoggerAdapter) fillFields() *logrus.Entry {
+	var instance = logrus.NewEntry(l.logger)
+
+	if len(l.fields) > 0 {
+		instance = instance.WithFields(logrus.Fields(l.fields))
+	}
+
+	l.fields = nil
+
+	return instance
 }

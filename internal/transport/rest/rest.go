@@ -2,32 +2,29 @@ package rest
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"wikreate/fimex/internal/config"
+	"go.uber.org/fx"
 	"wikreate/fimex/internal/domain/interfaces"
-	"wikreate/fimex/pkg/lifecycle"
-	"wikreate/fimex/pkg/server"
+	"wikreate/fimex/internal/transport/rest/server"
 )
 
-func BootstrapServer(conf *config.Config, logger interfaces.Logger, router *gin.Engine) func(lf *lifecycle.Lifecycle) {
-	return func(lf *lifecycle.Lifecycle) {
+type ServerParams struct {
+	fx.In
 
-		obj := server.NewServer(router, conf)
+	Logger interfaces.Logger
+	Server *server.Server
+	Lc     fx.Lifecycle
+}
 
-		lf.Append(lifecycle.AppendLifecycle{
-			OnStart: func(ctx context.Context) any {
-				if err := obj.Start(); err != nil && err != http.ErrServerClosed {
-					logger.Errorf("Failed to start server %v", err)
-				}
-				return nil
-			},
+func handleServer(p ServerParams) {
+	p.Lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			p.Server.Start()
+			return nil
+		},
 
-			OnStop: func(ctx context.Context) any {
-				err := obj.Stop(ctx)
-				logger.Errorf("Failed to stop server %v", err)
-				return nil
-			},
-		})
-	}
+		OnStop: func(ctx context.Context) error {
+			p.Server.Stop(ctx)
+			return nil
+		},
+	})
 }

@@ -1,7 +1,6 @@
 package rabbitmq
 
 import (
-	"context"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"sync"
@@ -18,6 +17,8 @@ type RabbitMQ struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
 	log  Logger
+	stop chan struct{}
+	wg   *sync.WaitGroup
 
 	register []RegisterDto
 }
@@ -41,7 +42,13 @@ type Credentials struct {
 }
 
 func newRabbitMQ(conn *amqp.Connection, ch *amqp.Channel, log Logger) *RabbitMQ {
-	return &RabbitMQ{conn: conn, ch: ch, log: log}
+	return &RabbitMQ{
+		conn: conn,
+		ch:   ch,
+		log:  log,
+		stop: make(chan struct{}),
+		wg:   new(sync.WaitGroup),
+	}
 }
 
 func (r *RabbitMQ) exchangeDeclare(exchange string) {
@@ -72,7 +79,7 @@ func (r *RabbitMQ) Register(input RegisterDto) {
 	r.register = append(r.register, input)
 }
 
-func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
+func (r *RabbitMQ) Listen() {
 
 	grouped := make(map[string]map[string]RegisterDto)
 	for _, input := range r.register {
@@ -84,15 +91,9 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	}
 
 	for queueName, items := range grouped {
-		wg.Add(1)
+		r.wg.Add(1)
 		go func(queueName string, items map[string]RegisterDto) {
-			defer wg.Done()
-
-			//defer func() {
-			//	if r := recover(); r != nil {
-			//	}
-			//}()
-
+			defer r.wg.Done()
 			msgs, err := r.ch.Consume(
 				queueName, "", true, false, false, false, nil,
 			)
@@ -108,8 +109,8 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 						}
 					}
 					continue
-				case <-ctx.Done():
-					fmt.Println("Consumer stopped")
+				case <-r.stop:
+					fmt.Println("Consumer stopped", queueName)
 					return
 				}
 			}
@@ -118,6 +119,8 @@ func (r *RabbitMQ) Listen(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (r *RabbitMQ) Close() {
+	close(r.stop)
+	r.wg.Wait()
 	r.log.PanicOnErr(r.conn.Close(), "Failed to close connection")
 	r.log.PanicOnErr(r.ch.Close(), "Failed to close channel")
 	fmt.Println("RabbitMQ closed")

@@ -13,4 +13,6 @@ type Logger interface {
 
 	PanicOnErr(err error, args ...interface{})
 	FatalOnErr(err error, args ...interface{})
+	OnErrorf(err error, msg string)
+	OnError(err error, msg string)
 }

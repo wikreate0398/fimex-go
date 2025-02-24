@@ -2,18 +2,14 @@ package consumers
 
 import (
 	"encoding/json"
-	"wikreate/fimex/internal/domain/services/payment_history_service"
 	"wikreate/fimex/internal/domain/structure/dto/payment_dto"
 )
 
 type RecalcHistoryBallanceConsumer struct {
-	service *payment_history_service.PaymentHistoryService
+	service PaymentHistoryService
 }
 
-func NewRecalcHistoryBallanceConsumer(
-	service *payment_history_service.PaymentHistoryService,
-) *RecalcHistoryBallanceConsumer {
-
+func NewRecalcHistoryBallanceConsumer(service PaymentHistoryService) *RecalcHistoryBallanceConsumer {
 	return &RecalcHistoryBallanceConsumer{service}
 }
 

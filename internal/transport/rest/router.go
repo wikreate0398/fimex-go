@@ -5,10 +5,9 @@ import (
 	"go.uber.org/fx"
 	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/transport/rest/controllers"
-	"wikreate/fimex/internal/transport/rest/middleware"
 )
 
-type Params struct {
+type RoutesParams struct {
 	fx.In
 
 	Logger interfaces.Logger
@@ -17,11 +16,11 @@ type Params struct {
 	MainController *controllers.MainController
 }
 
-func RegisterRoutes(p Params) {
+func newRouter() *gin.Engine {
+	return gin.Default()
+}
 
-	p.Router.Use(middleware.LoggerMiddleware(p.Logger))
-	p.Router.Use(gin.Recovery())
-
+func registerRoutes(p RoutesParams) {
 	v1 := p.Router.Group("/v1")
 	{
 		v1.GET("/", p.MainController.Home)
