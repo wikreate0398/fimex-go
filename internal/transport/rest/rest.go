@@ -3,14 +3,12 @@ package rest
 import (
 	"context"
 	"go.uber.org/fx"
-	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/transport/rest/server"
 )
 
 type ServerParams struct {
 	fx.In
 
-	Logger interfaces.Logger
 	Server *server.Server
 	Lc     fx.Lifecycle
 }
