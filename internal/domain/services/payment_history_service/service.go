@@ -18,6 +18,7 @@ type Params struct {
 	UserRepo           UserRepository
 	PaymentHistoryRepo PaymentHistoryRepository
 	Logger             interfaces.Logger
+	Db                 interfaces.DB
 }
 
 type PaymentHistoryService struct {
