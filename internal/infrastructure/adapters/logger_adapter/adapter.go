@@ -36,23 +36,23 @@ func (l *LoggerAdapter) WithFields(args map[string]interface{}) interfaces.Logge
 }
 
 func (l *LoggerAdapter) Info(args ...interface{}) {
-	l.fillFields().Info(args)
+	l.fillFields().Info(args...)
 }
 
 func (l *LoggerAdapter) Debug(args ...interface{}) {
-	l.fillFields().Debug(args)
+	l.fillFields().Debug(args...)
 }
 
 func (l *LoggerAdapter) Debugf(msg string, args ...interface{}) {
-	l.fillFields().Debugf(msg, args)
+	l.fillFields().Debugf(msg, args...)
 }
 
 func (l *LoggerAdapter) Error(args ...interface{}) {
-	l.fillFields().Error(args)
+	l.fillFields().Error(args...)
 }
 
 func (l *LoggerAdapter) Errorf(msg string, args ...interface{}) {
-	l.fillFields().Errorf(msg, args)
+	l.fillFields().Errorf(msg, args...)
 }
 
 func (l *LoggerAdapter) OnErrorf(err error, msg string) {
@@ -68,15 +68,15 @@ func (l *LoggerAdapter) OnError(err error, msg string) {
 }
 
 func (l *LoggerAdapter) Warn(args ...interface{}) {
-	l.fillFields().Warn(args)
+	l.fillFields().Warn(args...)
 }
 
 func (l *LoggerAdapter) Fatal(args ...interface{}) {
-	l.fillFields().Fatal(args)
+	l.fillFields().Fatal(args...)
 }
 
 func (l *LoggerAdapter) Panic(args ...interface{}) {
-	l.fillFields().Panic(args)
+	l.fillFields().Panic(args...)
 }
 
 func (l *LoggerAdapter) PanicOnErr(err error, args ...interface{}) {
