@@ -4,7 +4,7 @@ import (
 	"wikreate/fimex/internal/config"
 	"wikreate/fimex/internal/domain/interfaces"
 	domain_services "wikreate/fimex/internal/domain/services"
-	"wikreate/fimex/internal/infrastructure/database/repositories"
+	"wikreate/fimex/internal/infrastructure/storage/repositories"
 )
 
 type AppDeps struct {

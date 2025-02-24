@@ -1,24 +1,20 @@
-package database
+package db_adapter
 
 import (
-	"context"
 	"database/sql"
 	"github.com/jmoiron/sqlx"
-	"wikreate/fimex/pkg/database/mysql"
+	"wikreate/fimex/internal/domain/interfaces"
+	"wikreate/fimex/pkg/mysql"
 )
+
+var _ interfaces.DB = (*DB)(nil)
 
 type DB struct {
 	db *sqlx.DB
 }
 
-func NewMysqlManager(ctx context.Context, creds mysql.DBCreds) (*DB, error) {
-	db, err := mysql.NewClient(ctx, creds)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &DB{db: db}, nil
+func NewDBAdapter(db *sqlx.DB) *DB {
+	return &DB{db: db}
 }
 
 func (dbm *DB) BeginTx() (*sqlx.Tx, error) {
@@ -29,21 +25,15 @@ func (dbm *DB) BeginTx() (*sqlx.Tx, error) {
 	return tx, nil
 }
 
-func (dbm *DB) GetDB() *sqlx.DB {
-	return dbm.db
-}
-
 func (dbm *DB) Get(entity interface{}, query string, args ...interface{}) error {
-	err := dbm.db.Get(entity, query, args...)
-	if err != nil {
+	if err := dbm.db.Get(entity, query, args...); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (dbm *DB) Select(entity interface{}, query string, args ...interface{}) error {
-	err := dbm.db.Select(entity, query, args...)
-	if err != nil {
+	if err := dbm.db.Select(entity, query, args...); err != nil {
 		return err
 	}
 	return nil
@@ -58,7 +48,7 @@ func (dbm *DB) Query(query string, args ...any) (*sql.Rows, error) {
 }
 
 func (dbm *DB) BatchUpdate(table string, identifier string, arg interface{}) (sql.Result, error) {
-	query, err := NewBatchUpdate(table, identifier, arg).query()
+	query, err := mysql.NewBatchUpdate(table, identifier, arg).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +56,7 @@ func (dbm *DB) BatchUpdate(table string, identifier string, arg interface{}) (sq
 }
 
 func (dbm *DB) NamedExec(query string, args interface{}) error {
-	_, err := dbm.db.NamedExec(query, args)
-	if err != nil {
+	if _, err := dbm.db.NamedExec(query, args); err != nil {
 		return err
 	}
 	return nil

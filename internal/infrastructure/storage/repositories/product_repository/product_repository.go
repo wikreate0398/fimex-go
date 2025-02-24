@@ -8,11 +8,11 @@ import (
 )
 
 type ProductRepositoryImpl struct {
-	dbManager interfaces.DbManager
+	db interfaces.DB
 }
 
-func NewProductRepository(db interfaces.DbManager) *ProductRepositoryImpl {
-	return &ProductRepositoryImpl{dbManager: db}
+func NewProductRepository(db interfaces.DB) *ProductRepositoryImpl {
+	return &ProductRepositoryImpl{db: db}
 }
 
 func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.GenerateNamesInputDto, limit int, offset int) []string {
@@ -23,7 +23,7 @@ func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.Gener
 
 	var query = fmt.Sprintf("select id from products %s order by id asc LIMIT ? OFFSET ?", helpers.PrependStr(cond, "where"))
 
-	p.dbManager.Select(&ids, query, args...)
+	p.db.Select(&ids, query, args...)
 
 	return ids
 }
@@ -34,7 +34,7 @@ func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *catalog_dto.G
 	var total int
 	var query = fmt.Sprintf("select count(*) from products %s", helpers.PrependStr(cond, "where"))
 
-	p.dbManager.Get(&total, query, args...)
+	p.db.Get(&total, query, args...)
 
 	return total
 }
@@ -43,7 +43,7 @@ func (p ProductRepositoryImpl) CountTotal() int {
 	var total int
 	var query = "select count(*) from products"
 
-	p.dbManager.Get(&total, query)
+	p.db.Get(&total, query)
 	return total
 }
 
@@ -78,14 +78,14 @@ func (p ProductRepositoryImpl) GetForSort() []catalog_dto.ProductSortQueryDto {
 		order by brand_position, cat_position, subcat_position`
 
 	var dto []catalog_dto.ProductSortQueryDto
-	p.dbManager.Select(&dto, query)
+	p.db.Select(&dto, query)
 	return dto
 }
 
 func (p ProductRepositoryImpl) UpdateNames(arg interface{}, identifier string) {
-	p.dbManager.BatchUpdate("products", identifier, arg)
+	p.db.BatchUpdate("products", identifier, arg)
 }
 
 func (p ProductRepositoryImpl) UpdatePosition(arg interface{}, identifier string) {
-	p.dbManager.BatchUpdate("products", identifier, arg)
+	p.db.BatchUpdate("products", identifier, arg)
 }

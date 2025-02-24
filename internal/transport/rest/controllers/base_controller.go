@@ -3,13 +3,11 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"wikreate/fimex/internal/dto/app_dto"
 )
 
 type Json map[string]interface{}
 
 type BaseController struct {
-	application *app_dto.Application
 }
 
 func (ctrl *BaseController) ok200(context *gin.Context, result map[string]any) {

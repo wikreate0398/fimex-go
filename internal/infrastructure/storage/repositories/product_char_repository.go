@@ -8,11 +8,11 @@ import (
 )
 
 type ProductCharRepositoryImpl struct {
-	dbManager interfaces.DbManager
+	db interfaces.DB
 }
 
-func NewProductCharRepository(db interfaces.DbManager) *ProductCharRepositoryImpl {
-	return &ProductCharRepositoryImpl{dbManager: db}
+func NewProductCharRepository(db interfaces.DB) *ProductCharRepositoryImpl {
+	return &ProductCharRepositoryImpl{db: db}
 }
 
 func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.ProductCharQueryDto {
@@ -27,7 +27,7 @@ func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.P
 			and chars.deleted_at is null  
 		`, strings.Join(ids, ","))
 
-	p.dbManager.Select(&productChars, query)
+	p.db.Select(&productChars, query)
 
 	return productChars
 }

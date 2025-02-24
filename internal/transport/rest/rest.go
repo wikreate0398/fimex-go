@@ -2,28 +2,30 @@ package rest
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"net/http"
-	"wikreate/fimex/internal/dto/app_dto"
+	"wikreate/fimex/internal/config"
+	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/pkg/lifecycle"
 	"wikreate/fimex/pkg/server"
 )
 
-func Init(app *app_dto.Application) func(lf *lifecycle.Lifecycle) {
+func BootstrapServer(conf *config.Config, logger interfaces.Logger, router *gin.Engine) func(lf *lifecycle.Lifecycle) {
 	return func(lf *lifecycle.Lifecycle) {
 
-		obj := server.NewServer(InitRouter(app), app.Deps.Config)
+		obj := server.NewServer(router, conf)
 
 		lf.Append(lifecycle.AppendLifecycle{
 			OnStart: func(ctx context.Context) any {
 				if err := obj.Start(); err != nil && err != http.ErrServerClosed {
-					app.Deps.Logger.Error(err)
+					logger.Errorf("Failed to start server %v", err)
 				}
 				return nil
 			},
 
 			OnStop: func(ctx context.Context) any {
 				err := obj.Stop(ctx)
-				app.Deps.Logger.PanicOnErr(err, "Failed to stop services")
+				logger.Errorf("Failed to stop server %v", err)
 				return nil
 			},
 		})

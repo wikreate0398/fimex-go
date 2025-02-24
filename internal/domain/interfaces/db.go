@@ -2,16 +2,13 @@ package interfaces
 
 import (
 	"database/sql"
-	"github.com/jmoiron/sqlx"
 )
 
-type DbManager interface {
-	GetDB() *sqlx.DB
+type DB interface {
+	Get(entity interface{}, query string, args ...interface{}) error
+	Select(entity interface{}, query string, args ...interface{}) error
+	Query(query string, args ...any) (*sql.Rows, error)
 
-	Get(entity interface{}, query string, args ...interface{})
-	Select(entity interface{}, query string, args ...interface{})
-	Query(query string, args ...any) *sql.Rows
-
-	NamedExec(query string, args interface{})
-	BatchUpdate(table string, identifier string, arg interface{}) sql.Result
+	NamedExec(query string, args interface{}) error
+	BatchUpdate(table string, identifier string, arg interface{}) (sql.Result, error)
 }

@@ -1,7 +1,16 @@
 package rest
 
-import "go.uber.org/fx"
+import (
+	"github.com/gin-gonic/gin"
+	"go.uber.org/fx"
+	"wikreate/fimex/internal/transport/rest/controllers"
+)
 
-func NewModule() fx.Option {
-	return fx.Module("http", fx.Invoke(Init))
-}
+var Module = fx.Module("rest",
+
+	fx.Provide(gin.Default),
+	controllers.Module,
+
+	fx.Invoke(RegisterRoutes),
+	fx.Invoke(BootstrapServer),
+)

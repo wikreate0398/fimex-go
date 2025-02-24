@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	app.Make()
+	app.Create()
 }

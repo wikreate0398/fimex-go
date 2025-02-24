@@ -1,10 +1,11 @@
-package logger
+package logrus
 
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"runtime/debug"
 	"time"
 )
 
@@ -12,7 +13,18 @@ var (
 	logsDir = "logs"
 )
 
-func NewLogger() (*LoggerManager, error) {
+type StackHook struct{}
+
+func (h *StackHook) Levels() []log.Level {
+	return []log.Level{log.ErrorLevel, log.FatalLevel, log.PanicLevel, log.WarnLevel}
+}
+
+func (h *StackHook) Fire(entry *log.Entry) error {
+	entry.Data["stack"] = string(debug.Stack())
+	return nil
+}
+
+func NewLogrus() (*log.Logger, error) {
 	if err := createDir(); err != nil {
 		return nil, err
 	}
@@ -29,7 +41,9 @@ func NewLogger() (*LoggerManager, error) {
 	logger.SetLevel(log.DebugLevel)
 	logger.SetOutput(io.MultiWriter(file, os.Stdout))
 
-	return &LoggerManager{logger: logger}, nil
+	logger.AddHook(&StackHook{})
+
+	return logger, nil
 }
 
 func createDir() error {

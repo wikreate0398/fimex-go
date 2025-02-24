@@ -4,7 +4,7 @@ import (
 	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/domain/services/catalog/product_service"
 	"wikreate/fimex/internal/domain/services/payment_history_service"
-	"wikreate/fimex/internal/infrastructure/database/repositories"
+	"wikreate/fimex/internal/infrastructure/storage/repositories"
 )
 
 type Services struct {
