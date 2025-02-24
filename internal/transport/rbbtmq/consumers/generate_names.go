@@ -2,17 +2,14 @@ package consumers
 
 import (
 	"encoding/json"
-	"wikreate/fimex/internal/domain/services/catalog/product_service"
 	"wikreate/fimex/internal/domain/structure/dto/catalog_dto"
 )
 
 type GenerateNamesConsumer struct {
-	service *product_service.ProductService
+	service ProductService
 }
 
-func NewGenerateProductsNamesConsumer(
-	service *product_service.ProductService,
-) *GenerateNamesConsumer {
+func NewGenerateProductsNamesConsumer(service ProductService) *GenerateNamesConsumer {
 	return &GenerateNamesConsumer{service}
 }
 

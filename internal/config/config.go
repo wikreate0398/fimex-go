@@ -38,7 +38,9 @@ type Server struct {
 	Port int `mapstructure:"port"`
 }
 
-func Init(env string) (*Config, error) {
+const env = "stage"
+
+func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
 	if err := cfg.parseYaml(env); err != nil {

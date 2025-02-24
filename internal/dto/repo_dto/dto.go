@@ -5,5 +5,5 @@ import (
 )
 
 type Deps struct {
-	DbManager interfaces.DbManager
+	DbManager interfaces.DB
 }

@@ -2,6 +2,7 @@ package product_service
 
 import (
 	"fmt"
+	"go.uber.org/fx"
 	"math"
 	"runtime"
 	"slices"
@@ -17,25 +18,27 @@ import (
 	"wikreate/fimex/pkg/workerpool"
 )
 
-type Deps struct {
+type Params struct {
+	fx.In
+
 	ProductRepository     ProductRepository
 	ProductCharRepository ProductCharRepository
 	Logger                interfaces.Logger
 }
 
 type ProductService struct {
-	deps Deps
+	*Params
 }
 
-func NewProductService(deps Deps) *ProductService {
-	return &ProductService{deps: deps}
+func NewProductService(params Params) *ProductService {
+	return &ProductService{&params}
 }
 
 func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
-	///start := time.Now()
+	start := time.Now()
 
 	var (
-		total      = s.deps.ProductRepository.CountTotalForGenerateNames(payload)
+		total      = s.ProductRepository.CountTotalForGenerateNames(payload)
 		limit      = 700
 		iterations = int(math.Ceil(float64(total) / float64(limit)))
 	)
@@ -47,10 +50,10 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 	for i := 0; i < iterations; i++ {
 		pool.AddJob(func(i int) func() {
 			return func() {
-				ids := s.deps.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
+				ids := s.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
 				grouped := make(map[any][]catalog_dto.ProductCharQueryDto)
 
-				data := s.deps.ProductCharRepository.GetByProductIds(ids)
+				data := s.ProductCharRepository.GetByProductIds(ids)
 
 				for _, char := range data {
 					grouped[char.IdProduct] = append(grouped[char.IdProduct], char)
@@ -83,7 +86,7 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 				}
 
 				if len(insert) > 0 {
-					s.deps.ProductRepository.UpdateNames(insert, "id")
+					s.ProductRepository.UpdateNames(insert, "id")
 				}
 			}
 		}(i))
@@ -93,11 +96,11 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 
 	pool.Stop()
 
-	//s.deps.Logger.Info(fmt.Sprintf("GenerateNames %v", time.Since(start)))
+	s.Logger.Info(fmt.Sprintf("GenerateNames %v", time.Since(start)))
 }
 
 func (s ProductService) Sort() {
-	//start := time.Now()
+	start := time.Now()
 
 	type job struct {
 		products  []catalog_dto.ProductSortQueryDto
@@ -147,7 +150,7 @@ func (s ProductService) Sort() {
 					iteration++
 				}
 
-				s.deps.ProductRepository.UpdatePosition(insert, "id")
+				s.ProductRepository.UpdatePosition(insert, "id")
 			}
 		}()
 	}
@@ -156,7 +159,7 @@ func (s ProductService) Sort() {
 		grouped := make(map[any][]catalog_dto.ProductSortQueryDto)
 		var orderedKeys []string
 
-		var data = s.deps.ProductRepository.GetForSort()
+		var data = s.ProductRepository.GetForSort()
 
 		for _, prod := range data {
 			var key = fmt.Sprintf("%v.%v.%v", prod.IdBrand, prod.IdCategory, prod.IdSubcategory)
@@ -181,5 +184,5 @@ func (s ProductService) Sort() {
 
 	wg.Wait()
 
-	//s.deps.Logger.Info(fmt.Sprintf("Sort Products %v", time.Since(start)))
+	s.Logger.Info(fmt.Sprintf("Sort Products %v", time.Since(start)))
 }

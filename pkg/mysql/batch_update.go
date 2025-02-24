@@ -1,4 +1,4 @@
-package database
+package mysql
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ func NewBatchUpdate(table, identifier string, arg interface{}) *BatchUpdate {
 	return &BatchUpdate{table, identifier, arg}
 }
 
-func (b *BatchUpdate) query() (string, error) {
+func (b *BatchUpdate) Query() (string, error) {
 	type value struct {
 		fieldTag   string
 		fieldValue any

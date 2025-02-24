@@ -2,6 +2,7 @@ package payment_history_service
 
 import (
 	"fmt"
+	"go.uber.org/fx"
 	"runtime"
 	"wikreate/fimex/internal/domain/entities/user_entity"
 	"wikreate/fimex/internal/domain/interfaces"
@@ -11,18 +12,20 @@ import (
 	"wikreate/fimex/pkg/workerpool"
 )
 
-type Deps struct {
+type Params struct {
+	fx.In
+
 	UserRepo           UserRepository
 	PaymentHistoryRepo PaymentHistoryRepository
 	Logger             interfaces.Logger
 }
 
 type PaymentHistoryService struct {
-	deps Deps
+	*Params
 }
 
-func NewPaymentHistoryService(deps Deps) *PaymentHistoryService {
-	return &PaymentHistoryService{deps: deps}
+func NewPaymentHistoryService(params Params) *PaymentHistoryService {
+	return &PaymentHistoryService{&params}
 }
 
 func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallanceInputDto) {
@@ -43,17 +46,17 @@ func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallan
 	pool.Start()
 
 	for _, val := range cashboxes {
-		var users = s.deps.UserRepo.SelectWhitchHasPaymentHistory(payload.IdUser, val)
+		var users = s.UserRepo.SelectWhitchHasPaymentHistory(payload.IdUser, val)
 
 		for _, user := range users {
 			pool.AddJob(func(user user_dto.UserQueryDto, cashboxType payment_vo.Cashbox) func() {
 				return func() {
 					var userEntity = user_entity.NewUser(user)
 
-					history, err := s.deps.PaymentHistoryRepo.SelectUserHistory(userEntity.ID(), cashboxType)
+					history, err := s.PaymentHistoryRepo.SelectUserHistory(userEntity.ID(), cashboxType)
 
 					if err != nil {
-						s.deps.Logger.PanicOnErr(
+						s.Logger.PanicOnErr(
 							err,
 							fmt.Sprintf("Failed to get user history, ID %v", userEntity.ID()),
 						)
@@ -83,7 +86,7 @@ func (s PaymentHistoryService) RecalcBallances(payload *payment_dto.RecalcBallan
 					}
 
 					if len(inserts) > 0 {
-						s.deps.PaymentHistoryRepo.BatchUpdate(inserts, "id")
+						s.PaymentHistoryRepo.BatchUpdate(inserts, "id")
 					}
 				}
 			}(user, val))

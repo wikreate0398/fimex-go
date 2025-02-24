@@ -8,17 +8,17 @@ import (
 )
 
 type PaymentHistoryRepositoryImpl struct {
-	dbManager interfaces.DbManager
+	db interfaces.DB
 }
 
-func NewPaymentHistoryRepository(db interfaces.DbManager) *PaymentHistoryRepositoryImpl {
-	return &PaymentHistoryRepositoryImpl{dbManager: db}
+func NewPaymentHistoryRepository(db interfaces.DB) *PaymentHistoryRepositoryImpl {
+	return &PaymentHistoryRepositoryImpl{db: db}
 }
 
 func (repo PaymentHistoryRepositoryImpl) SelectUserHistory(
 	id_user int, cashbox payment_vo.Cashbox,
 ) ([]payment_history_entity.PaymentHistory, error) {
-	rows := repo.dbManager.Query(`
+	rows, _ := repo.db.Query(`
 	   select id,id_user,increase,sum,ballance,date
 		from payment_history
 		WHERE id_user=? and cashbox=? and deleted_at is null
@@ -59,5 +59,5 @@ func (repo PaymentHistoryRepositoryImpl) SelectUserHistory(
 }
 
 func (p PaymentHistoryRepositoryImpl) BatchUpdate(arg interface{}, identifier string) {
-	p.dbManager.BatchUpdate("payment_history", identifier, arg)
+	p.db.BatchUpdate("payment_history", identifier, arg)
 }

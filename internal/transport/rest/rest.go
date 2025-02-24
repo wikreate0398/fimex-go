@@ -2,30 +2,29 @@ package rest
 
 import (
 	"context"
-	"net/http"
-	"wikreate/fimex/internal/dto/app_dto"
-	"wikreate/fimex/pkg/lifecycle"
-	"wikreate/fimex/pkg/server"
+	"go.uber.org/fx"
+	"wikreate/fimex/internal/domain/interfaces"
+	"wikreate/fimex/internal/transport/rest/server"
 )
 
-func Init(app *app_dto.Application) func(lf *lifecycle.Lifecycle) {
-	return func(lf *lifecycle.Lifecycle) {
+type ServerParams struct {
+	fx.In
 
-		obj := server.NewServer(InitRouter(app), app.Deps.Config)
+	Logger interfaces.Logger
+	Server *server.Server
+	Lc     fx.Lifecycle
+}
 
-		lf.Append(lifecycle.AppendLifecycle{
-			OnStart: func(ctx context.Context) any {
-				if err := obj.Start(); err != nil && err != http.ErrServerClosed {
-					app.Deps.Logger.Error(err)
-				}
-				return nil
-			},
+func handleServer(p ServerParams) {
+	p.Lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			p.Server.Start()
+			return nil
+		},
 
-			OnStop: func(ctx context.Context) any {
-				err := obj.Stop(ctx)
-				app.Deps.Logger.PanicOnErr(err, "Failed to stop services")
-				return nil
-			},
-		})
-	}
+		OnStop: func(ctx context.Context) error {
+			p.Server.Stop(ctx)
+			return nil
+		},
+	})
 }

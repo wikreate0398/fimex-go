@@ -8,11 +8,11 @@ import (
 )
 
 type UserRepositoryImpl struct {
-	dbManager interfaces.DbManager
+	db interfaces.DB
 }
 
-func NewUserRepository(db interfaces.DbManager) *UserRepositoryImpl {
-	return &UserRepositoryImpl{dbManager: db}
+func NewUserRepository(db interfaces.DB) *UserRepositoryImpl {
+	return &UserRepositoryImpl{db: db}
 }
 
 func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbox payment_vo.Cashbox) []user_dto.UserQueryDto {
@@ -39,7 +39,7 @@ func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbo
 		and deleted_at is null
 	`, userCond, cashboxCond)
 
-	repo.dbManager.Select(&input, query, args...)
+	repo.db.Select(&input, query, args...)
 
 	return input
 }

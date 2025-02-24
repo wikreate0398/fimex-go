@@ -2,23 +2,27 @@ package rest
 
 import (
 	"github.com/gin-gonic/gin"
-	"wikreate/fimex/internal/dto/app_dto"
+	"go.uber.org/fx"
+	"wikreate/fimex/internal/domain/interfaces"
 	"wikreate/fimex/internal/transport/rest/controllers"
-	"wikreate/fimex/internal/transport/rest/middleware"
 )
 
-func InitRouter(app *app_dto.Application) *gin.Engine {
+type RoutesParams struct {
+	fx.In
 
-	handlers := controllers.NewControllers(app)
+	Logger interfaces.Logger
+	Router *gin.Engine
 
-	router := gin.New()
-	router.Use(middleware.LoggerMiddleware(app))
-	router.Use(gin.Recovery())
+	MainController *controllers.MainController
+}
 
-	v1 := router.Group("/v1")
+func newRouter() *gin.Engine {
+	return gin.Default()
+}
+
+func registerRoutes(p RoutesParams) {
+	v1 := p.Router.Group("/v1")
 	{
-		v1.GET("/", handlers.MainController.Home)
+		v1.GET("/", p.MainController.Home)
 	}
-
-	return router
 }
