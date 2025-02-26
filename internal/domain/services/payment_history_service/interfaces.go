@@ -7,10 +7,10 @@ import (
 )
 
 type UserRepository interface {
-	SelectWhitchHasPaymentHistory(id_user int, cashbox payment_vo.Cashbox) []user_dto.UserQueryDto
+	SelectWhitchHasPaymentHistory(id_user int, cashbox payment_vo.Cashbox) ([]user_dto.UserQueryDto, error)
 }
 
 type PaymentHistoryRepository interface {
 	SelectUserHistory(id_user int, cashbox payment_vo.Cashbox) ([]payment_history_entity.PaymentHistory, error)
-	BatchUpdate(arg interface{}, identifier string)
+	BatchUpdate(arg interface{}, identifier string) error
 }

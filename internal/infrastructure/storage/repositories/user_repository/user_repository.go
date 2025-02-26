@@ -15,7 +15,7 @@ func NewUserRepository(db interfaces.DB) *UserRepositoryImpl {
 	return &UserRepositoryImpl{db: db}
 }
 
-func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbox payment_vo.Cashbox) []user_dto.UserQueryDto {
+func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbox payment_vo.Cashbox) ([]user_dto.UserQueryDto, error) {
 	var input []user_dto.UserQueryDto
 
 	args := []interface{}{}
@@ -39,7 +39,9 @@ func (repo UserRepositoryImpl) SelectWhitchHasPaymentHistory(id_user int, cashbo
 		and deleted_at is null
 	`, userCond, cashboxCond)
 
-	repo.db.Select(&input, query, args...)
+	if err := repo.db.Select(&input, query, args...); err != nil {
+		return nil, err
+	}
 
-	return input
+	return input, nil
 }

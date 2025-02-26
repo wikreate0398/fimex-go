@@ -15,7 +15,8 @@ func NewProductRepository(db interfaces.DB) *ProductRepositoryImpl {
 	return &ProductRepositoryImpl{db: db}
 }
 
-func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.GenerateNamesInputDto, limit int, offset int) []string {
+func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.GenerateNamesInputDto, limit int, offset int) ([]string, error) {
+
 	var cond, args = condGenerateNamesPayload(payload)
 	args = append(args, limit, offset)
 
@@ -23,31 +24,27 @@ func (p ProductRepositoryImpl) GetIdsForGenerateNames(payload *catalog_dto.Gener
 
 	var query = fmt.Sprintf("select id from products %s order by id asc LIMIT ? OFFSET ?", helpers.PrependStr(cond, "where"))
 
-	p.db.Select(&ids, query, args...)
+	if err := p.db.Select(&ids, query, args...); err != nil {
+		return nil, err
+	}
 
-	return ids
+	return ids, nil
 }
 
-func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *catalog_dto.GenerateNamesInputDto) int {
+func (p ProductRepositoryImpl) CountTotalForGenerateNames(payload *catalog_dto.GenerateNamesInputDto) (int, error) {
 	var cond, args = condGenerateNamesPayload(payload)
 
 	var total int
 	var query = fmt.Sprintf("select count(*) from products %s", helpers.PrependStr(cond, "where"))
 
-	p.db.Get(&total, query, args...)
+	if err := p.db.Get(&total, query, args...); err != nil {
+		return 0, err
+	}
 
-	return total
+	return total, nil
 }
 
-func (p ProductRepositoryImpl) CountTotal() int {
-	var total int
-	var query = "select count(*) from products"
-
-	p.db.Get(&total, query)
-	return total
-}
-
-func (p ProductRepositoryImpl) GetForSort() []catalog_dto.ProductSortQueryDto {
+func (p ProductRepositoryImpl) GetForSort() ([]catalog_dto.ProductSortQueryDto, error) {
 	query := `
 		SELECT 
 			products.id, 
@@ -78,14 +75,20 @@ func (p ProductRepositoryImpl) GetForSort() []catalog_dto.ProductSortQueryDto {
 		order by brand_position, cat_position, subcat_position`
 
 	var dto []catalog_dto.ProductSortQueryDto
-	p.db.Select(&dto, query)
-	return dto
+
+	if err := p.db.Select(&dto, query); err != nil {
+		return nil, err
+	}
+
+	return dto, nil
 }
 
-func (p ProductRepositoryImpl) UpdateNames(arg interface{}, identifier string) {
-	p.db.BatchUpdate("products", identifier, arg)
+func (p ProductRepositoryImpl) UpdateNames(arg interface{}, identifier string) error {
+	_, err := p.db.BatchUpdate("products", identifier, arg)
+	return err
 }
 
-func (p ProductRepositoryImpl) UpdatePosition(arg interface{}, identifier string) {
-	p.db.BatchUpdate("products", identifier, arg)
+func (p ProductRepositoryImpl) UpdatePosition(arg interface{}, identifier string) error {
+	_, err := p.db.BatchUpdate("products", identifier, arg)
+	return err
 }

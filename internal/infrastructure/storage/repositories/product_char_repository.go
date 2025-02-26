@@ -15,7 +15,7 @@ func NewProductCharRepository(db interfaces.DB) *ProductCharRepositoryImpl {
 	return &ProductCharRepositoryImpl{db: db}
 }
 
-func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.ProductCharQueryDto {
+func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) ([]catalog_dto.ProductCharQueryDto, error) {
 	var productChars []catalog_dto.ProductCharQueryDto
 	query := fmt.Sprintf(`
 			select id_product,name,use_product_name,add_emodji,cgc.position 
@@ -27,7 +27,9 @@ func (p ProductCharRepositoryImpl) GetByProductIds(ids []string) []catalog_dto.P
 			and chars.deleted_at is null  
 		`, strings.Join(ids, ","))
 
-	p.db.Select(&productChars, query)
+	if err := p.db.Select(&productChars, query); err != nil {
+		return nil, err
+	}
 
-	return productChars
+	return productChars, nil
 }

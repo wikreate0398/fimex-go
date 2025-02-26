@@ -37,8 +37,14 @@ func NewProductService(params Params) *ProductService {
 func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto) {
 	//start := time.Now()
 
+	total, err := s.ProductRepository.CountTotalForGenerateNames(payload)
+
+	if err != nil {
+		s.Logger.Errorf("Error counting total for generate names: %s", err.Error())
+		return
+	}
+
 	var (
-		total      = s.ProductRepository.CountTotalForGenerateNames(payload)
 		limit      = 700
 		iterations = int(math.Ceil(float64(total) / float64(limit)))
 	)
@@ -50,10 +56,24 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 	for i := 0; i < iterations; i++ {
 		pool.AddJob(func(i int) func() {
 			return func() {
-				ids := s.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
+				var logFields = helpers.KeyStrValue{
+					"payload": payload,
+				}
+
+				ids, err := s.ProductRepository.GetIdsForGenerateNames(payload, limit, i*limit)
+
+				if err != nil {
+					s.Logger.WithFields(logFields).Errorf("Error getting ids for generate names: %s", err.Error())
+					return
+				}
+
 				grouped := make(map[any][]catalog_dto.ProductCharQueryDto)
 
-				data := s.ProductCharRepository.GetByProductIds(ids)
+				data, err := s.ProductCharRepository.GetByProductIds(ids)
+
+				if err != nil {
+					s.Logger.WithFields(logFields).Errorf("Error getting product chars: %s", err.Error())
+				}
 
 				for _, char := range data {
 					grouped[char.IdProduct] = append(grouped[char.IdProduct], char)
@@ -86,7 +106,9 @@ func (s ProductService) GenerateNames(payload *catalog_dto.GenerateNamesInputDto
 				}
 
 				if len(insert) > 0 {
-					s.ProductRepository.UpdateNames(insert, "id")
+					if err := s.ProductRepository.UpdateNames(insert, "id"); err != nil {
+						s.Logger.WithFields(logFields).Errorf("Error updating product names: %s", err.Error())
+					}
 				}
 			}
 		}(i))
@@ -150,7 +172,9 @@ func (s ProductService) Sort() {
 					iteration++
 				}
 
-				s.ProductRepository.UpdatePosition(insert, "id")
+				if err := s.ProductRepository.UpdatePosition(insert, "id"); err != nil {
+					s.Logger.Errorf("Error updating product position: %s", err.Error())
+				}
 			}
 		}()
 	}
@@ -159,7 +183,12 @@ func (s ProductService) Sort() {
 		grouped := make(map[any][]catalog_dto.ProductSortQueryDto)
 		var orderedKeys []string
 
-		var data = s.ProductRepository.GetForSort()
+		var data, err = s.ProductRepository.GetForSort()
+
+		if err != nil {
+			s.Logger.Errorf("Error get products for sort : %s", err.Error())
+			return
+		}
 
 		for _, prod := range data {
 			var key = fmt.Sprintf("%v.%v.%v", prod.IdBrand, prod.IdCategory, prod.IdSubcategory)

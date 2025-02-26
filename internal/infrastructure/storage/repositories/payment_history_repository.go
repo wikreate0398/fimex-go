@@ -18,15 +18,23 @@ func NewPaymentHistoryRepository(db interfaces.DB) *PaymentHistoryRepositoryImpl
 func (repo PaymentHistoryRepositoryImpl) SelectUserHistory(
 	id_user int, cashbox payment_vo.Cashbox,
 ) ([]payment_history_entity.PaymentHistory, error) {
-	rows, _ := repo.db.Query(`
+	rows, err := repo.db.Query(`
 	   select id,id_user,increase,sum,ballance,date
 		from payment_history
 		WHERE id_user=? and cashbox=? and deleted_at is null
-		order by date asc, id asc
+		order by date asc, id asc 
 		FOR UPDATE
 	`, id_user, cashbox.String())
 
-	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err := rows.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	var history []payment_history_entity.PaymentHistory
 	for rows.Next() {
@@ -55,9 +63,14 @@ func (repo PaymentHistoryRepositoryImpl) SelectUserHistory(
 		history = append(history, payment_history_entity.NewPaymentHistory(dto))
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return history, nil
 }
 
-func (p PaymentHistoryRepositoryImpl) BatchUpdate(arg interface{}, identifier string) {
-	p.db.BatchUpdate("payment_history", identifier, arg)
+func (p PaymentHistoryRepositoryImpl) BatchUpdate(arg interface{}, identifier string) error {
+	_, err := p.db.BatchUpdate("payment_history", identifier, arg)
+	return err
 }
